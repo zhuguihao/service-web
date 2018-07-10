@@ -9,6 +9,7 @@ import Page4 from './views/nav2/Page4.vue'
 import Page5 from './views/nav2/Page5.vue'
 import Page6 from './views/nav3/Page6.vue'
 import echarts from './views/charts/echarts.vue'
+import dict from './views/sys/dict.vue'
 
 let routes = [
     {
@@ -63,6 +64,15 @@ let routes = [
         iconCls: 'fa fa-bar-chart',
         children: [
             { path: '/echarts', component: echarts, name: 'echarts' }
+        ]
+    },
+    {
+        path: '/',
+        component: Home,
+        name: '系统配置',
+        iconCls: 'el-icon-setting',
+        children: [
+            { path: '/dict', component: dict, name: '字典表' }
         ]
     },
     {

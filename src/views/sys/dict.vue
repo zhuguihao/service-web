@@ -4,10 +4,13 @@
 		<el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
 			<el-form :inline="true" :model="filters">
 				<el-form-item>
-					<el-input v-model="filters.name" placeholder="姓名"></el-input>
+					<el-input v-model="filters.code" placeholder="代码"></el-input>
 				</el-form-item>
 				<el-form-item>
-					<el-button type="primary" v-on:click="getUsers">查询</el-button>
+					<el-input v-model="filters.value" placeholder="值"></el-input>
+				</el-form-item>
+				<el-form-item>
+					<el-button type="primary" v-on:click="serch">查询</el-button>
 				</el-form-item>
 				<el-form-item>
 					<el-button type="primary" @click="handleAdd">新增</el-button>
@@ -16,20 +19,18 @@
 		</el-col>
 
 		<!--列表-->
-		<el-table :data="users" highlight-current-row v-loading="listLoading" @selection-change="selsChange" style="width: 100%;">
+		<el-table :data="dict" highlight-current-row v-loading="listLoading" @selection-change="selsChange" style="width: 100%;">
 			<el-table-column type="selection" width="55">
 			</el-table-column>
-			<el-table-column type="index" width="60">
+			<!--<el-table-column type="index" width="60">-->
+			<!--</el-table-column>-->
+			<el-table-column prop="code" label="代码" width="120" sortable>
 			</el-table-column>
-			<el-table-column prop="name" label="姓名" width="120" sortable>
+			<!--<el-table-column prop="value" label="值" width="100" :formatter="formatSex" sortable>-->
+			<!--</el-table-column>-->
+			<el-table-column prop="value" label="值" width="100" sortable>
 			</el-table-column>
-			<el-table-column prop="sex" label="性别" width="100" :formatter="formatSex" sortable>
-			</el-table-column>
-			<el-table-column prop="age" label="年龄" width="100" sortable>
-			</el-table-column>
-			<el-table-column prop="birth" label="生日" width="120" sortable>
-			</el-table-column>
-			<el-table-column prop="addr" label="地址" min-width="180" sortable>
+			<el-table-column prop="remarks" label="描述" min-width="120" sortable>
 			</el-table-column>
 			<el-table-column label="操作" width="150">
 				<template slot-scope="scope">
@@ -107,15 +108,19 @@
 <script>
 	import util from '../../common/js/util'
 	//import NProgress from 'nprogress'
-	import { getUserListPage, removeUser, batchRemoveUser, editUser, addUser } from '../../api/api';
+	import { getUserListPage, removeUser, batchRemoveUser, editUser, addUser, getDict} from '../../api/api';
 
 	export default {
 		data() {
 			return {
+                /**
+				 * 过滤条件
+                 */
 				filters: {
-					name: ''
+					code: '',
+                    value: ''
 				},
-				users: [],
+				dict: [],
 				total: 0,
 				page: 1,
 				listLoading: false,
@@ -163,19 +168,19 @@
 			},
 			handleCurrentChange(val) {
 				this.page = val;
-				this.getUsers();
+				this.serch();
 			},
 			//获取用户列表
-			getUsers() {
+			serch() {
 				let para = {
 					page: this.page,
 					name: this.filters.name
 				};
 				this.listLoading = true;
 				//NProgress.start();
-				getUserListPage(para).then((res) => {
+                getDict(para).then((res) => {
 					this.total = res.data.total;
-					this.users = res.data.users;
+					this.dict = res.data.dict;
 					this.listLoading = false;
 					// NProgress.done();
 				});
@@ -195,7 +200,7 @@
 							message: '删除成功',
 							type: 'success'
 						});
-						this.getUsers();
+						this.serch();
 					});
 				}).catch(() => {
 
@@ -235,7 +240,7 @@
 								});
 								this.$refs['editForm'].resetFields();
 								this.editFormVisible = false;
-								this.getUsers();
+								this.serch();
 							});
 						});
 					}
@@ -259,7 +264,7 @@
 								});
 								this.$refs['addForm'].resetFields();
 								this.addFormVisible = false;
-								this.getUsers();
+								this.serch();
 							});
 						});
 					}
@@ -284,7 +289,7 @@
 							message: '删除成功',
 							type: 'success'
 						});
-						this.getUsers();
+						this.serch();
 					});
 				}).catch(() => {
 
@@ -292,7 +297,7 @@
 			}
 		},
 		mounted() {
-			this.getUsers();
+			this.serch();
 		}
 	}
 

@@ -150,5 +150,34 @@ export default {
       });
     });
 
+      /**
+       * 模拟数据字典表返回数据
+       */
+      mock.onPost('/sys/getDict').reply(config => {
+        console.log("getDict:"+JSON.stringify(config))
+          // let {username, password} = JSON.parse(config.data);
+          return new Promise((resolve, reject) => {
+              console.log("resolve:"+JSON.stringify(resolve))
+              console.log("reject:"+JSON.stringify(reject))
+          //     let user = null;
+          //     setTimeout(() => {
+          //         let hasUser = LoginUsers.some(u => {
+          //             if (u.username === username && u.password === password) {
+          //                 user = JSON.parse(JSON.stringify(u));
+          //                 user.password = undefined;
+          //                 return true;
+          //             }
+          //         });
+          //
+          //         if (hasUser) {
+              let user = [{code:"test",value:"测试1",remarks:"进行第一次测试数据"},{code:"test",value:"测试2",remarks:"进行第2次测试数据"},{code:"test",value:"测试3",remarks:"进行第3次测试数据"},{code:"test",value:"测试4",remarks:"进行第4次测试数据"}];
+                      resolve([200, { code: 200, msg: '请求成功', user }]);
+          //         } else {
+          //             resolve([200, { code: 500, msg: '账号或密码错误' }]);
+          //         }
+          //     }, 1000);
+          });
+      });
+
   }
 };
