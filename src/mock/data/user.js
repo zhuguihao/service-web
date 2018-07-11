@@ -22,4 +22,6 @@ for (let i = 0; i < 86; i++) {
   }));
 }
 
-export { LoginUsers, Users };
+const  dict = [{id:"1111",code:"test",value:"测试1",remarks:"进行第一次测试数据"},{id:"1111",code:"test",value:"测试1",remarks:"进行第一次测试数据"},{id:"1111",code:"test",value:"测试1",remarks:"进行第一次测试数据"},{id:"1111",code:"test",value:"测试1",remarks:"进行第一次测试数据"},{id:"1111",code:"test",value:"测试1",remarks:"进行第一次测试数据"},{id:"1111",code:"test",value:"测试1",remarks:"进行第一次测试数据"},{id:"1111",code:"test",value:"测试1",remarks:"进行第一次测试数据"},{id:"1111",code:"test",value:"测试1",remarks:"进行第一次测试数据"},{id:"1111",code:"test",value:"测试1",remarks:"进行第一次测试数据"},{id:"1111",code:"test",value:"测试1",remarks:"进行第一次测试数据"},{id:"1111",code:"test",value:"测试1",remarks:"进行第一次测试数据"}];
+
+export { LoginUsers, Users, dict};

@@ -1,7 +1,8 @@
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
-import { LoginUsers, Users } from './data/user';
+import {dict, LoginUsers, Users} from './data/user';
 let _Users = Users;
+let _dict = dict;
 
 export default {
   /**
@@ -153,29 +154,51 @@ export default {
       /**
        * 模拟数据字典表返回数据
        */
-      mock.onPost('/sys/getDict').reply(config => {
-        console.log("getDict:"+JSON.stringify(config))
+      mock.onPost('/api/appService/serviceCenter/getDict').reply(config => {
+          console.log("getDict:"+JSON.stringify(config))
           // let {username, password} = JSON.parse(config.data);
+          let params = JSON.parse(config.data).params;
+          console.log(JSON.stringify(params))
+          /**
+           * 筛选条件
+           */
+          let filterData = _dict.filter(item => {
+            console.log("item:"+JSON.stringify(item))
+              return !(params.code && item.code.indexOf(params.code) == -1);
+          });
+          console.log("dictData:"+JSON.stringify(filterData))
           return new Promise((resolve, reject) => {
-              console.log("resolve:"+JSON.stringify(resolve))
-              console.log("reject:"+JSON.stringify(reject))
-          //     let user = null;
-          //     setTimeout(() => {
-          //         let hasUser = LoginUsers.some(u => {
-          //             if (u.username === username && u.password === password) {
-          //                 user = JSON.parse(JSON.stringify(u));
-          //                 user.password = undefined;
-          //                 return true;
-          //             }
-          //         });
-          //
-          //         if (hasUser) {
-              let user = [{code:"test",value:"测试1",remarks:"进行第一次测试数据"},{code:"test",value:"测试2",remarks:"进行第2次测试数据"},{code:"test",value:"测试3",remarks:"进行第3次测试数据"},{code:"test",value:"测试4",remarks:"进行第4次测试数据"}];
-                      resolve([200, { code: 200, msg: '请求成功', user }]);
-          //         } else {
-          //             resolve([200, { code: 500, msg: '账号或密码错误' }]);
-          //         }
-          //     }, 1000);
+              let length = filterData.length;
+              let dictData = filterData.filter((u, index) => index < 10 * params.page && index >= 10 * (params.page - 1));
+              console.log(length)
+              resolve([200, {
+                      code: 200,
+                  msg: '请求成功',
+                  dict:dictData,
+                  total: length,
+              }]);
+          });
+      });
+
+      //编辑用户
+      mock.onPost('/sys/editDict').reply(config => {
+          console.log(JSON.stringify(config))
+          let params = JSON.parse(config.data).params;
+          console.log("params:"+JSON.stringify(params))
+          dict.some(item => {
+              if (item.id === params.id) {
+                  item.code = params.code
+                  item.value = params.value
+                  return true;
+              }
+          });
+          return new Promise((resolve, reject) => {
+              setTimeout(() => {
+                  resolve([200, {
+                      code: 200,
+                      msg: '编辑成功'
+                  }]);
+              }, 500);
           });
       });
 
