@@ -7,6 +7,7 @@ let _dict = dict;
 export default {
   /**
    * mock bootstrap
+   * 数据模拟中心
    */
   bootstrap() {
     let mock = new MockAdapter(axios);
@@ -154,11 +155,9 @@ export default {
       /**
        * 模拟数据字典表返回数据
        */
-      mock.onPost('/api/appService/serviceCenter/getDict').reply(config => {
-          console.log("getDict:"+JSON.stringify(config))
+      mock.onPost('/api/serviceCenter/getDict').reply(config => {
           // let {username, password} = JSON.parse(config.data);
           let params = JSON.parse(config.data).params;
-          console.log(JSON.stringify(params))
           /**
            * 筛选条件
            */
@@ -166,8 +165,9 @@ export default {
             console.log("item:"+JSON.stringify(item))
               return !(params.code && item.code.indexOf(params.code) == -1);
           });
-          console.log("dictData:"+JSON.stringify(filterData))
           return new Promise((resolve, reject) => {
+              console.log(JSON.stringify(resolve))
+              console.log(JSON.stringify(reject))
               let length = filterData.length;
               let dictData = filterData.filter((u, index) => index < 10 * params.page && index >= 10 * (params.page - 1));
               console.log(length)

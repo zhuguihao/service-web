@@ -30,6 +30,9 @@
 			<!--</el-table-column>-->
 			<el-table-column prop="value" label="值" width="100" sortable>
 			</el-table-column>
+			<el-table-column prop="isDel" label="是否禁用" width="120" sortable
+							 :formatter="formatDel">
+			</el-table-column>
 			<el-table-column prop="remarks" label="描述" min-width="120" sortable>
 			</el-table-column>
 			<el-table-column label="操作" width="150">
@@ -51,10 +54,20 @@
 		<el-dialog title="编辑" v-model="editFormVisible" :close-on-click-modal="false">
 			<el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
 				<el-form-item label="代码" prop="code">
-					<el-input v-model="editForm.code" auto-complete="off"></el-input>
+					<el-input v-model="editForm.code" auto-complete="off" disabled/>
 				</el-form-item>
 				<el-form-item label="值" prop="value">
-					<el-input v-model="editForm.value" auto-complete="off"></el-input>
+					<el-input v-model="editForm.value" auto-complete="off" />
+				</el-form-item>
+				<el-form-item label="是否禁用">
+					<el-radio-group v-model="editForm.isDel">
+						<el-radio class="radio" label="N">否</el-radio>
+						<el-radio class="radio" label="Y">是</el-radio>
+					</el-radio-group>
+				</el-form-item>
+				<el-form-item label="描述" prop="value">
+					<!--<el-input v-model="editForm.remarks" auto-complete="off"></el-input>-->
+					<el-input type="textarea" v-model="editForm.remarks" />
 				</el-form-item>
 			</el-form>
 			<div slot="footer" class="dialog-footer">
@@ -97,6 +110,8 @@
 	import util from '../../common/js/util'
 	//import NProgress from 'nprogress'
 	import { getUserListPage, removeUser, batchRemoveUser, editUser, addUser, getDict,editDict} from '../../api/api';
+	import axiosApi from '../../api/axiosApi'
+	import instanceUrl from '../../api/interfaceName'
 
 	export default {
 		data() {
@@ -151,8 +166,8 @@
 		},
 		methods: {
 			//性别显示转换
-			formatSex: function (row, column) {
-				return row.sex == 1 ? '男' : row.sex == 0 ? '女' : '未知';
+            formatDel: function (row, column) {
+				return row.isDel == 'N' ? '否' : row.isDel == 'Y' ? '是' : '未知';
 			},
 			handleCurrentChange(val) {
 				this.page = val;
@@ -160,20 +175,23 @@
 			},
 			//获取用户列表
 			serch() {
-				let para = {
+			    let vm = this
+				let params = {
 					page: this.page,
                     code: this.filters.code,
                     value: this.filters.value,
 				};
 				this.listLoading = true;
 				//NProgress.start();
-                getDict(para).then((res) => {
-                    console.log(JSON.stringify(res))
-					this.total = res.data.total;
-					this.dict = res.data.dict;
-					this.listLoading = false;
-					// NProgress.done();
-				});
+                axiosApi(instanceUrl.getDictUrl,params).then((res) => {
+                    vm.listLoading = false;
+                    console.log("成功回调："+JSON.stringify(res))
+                    vm.total = res.data.length;
+                    vm.dict = res.data;
+                }).catch((error) => {
+                    vm.listLoading = false;
+                    console.log("报错了")
+                })
 			},
 			//删除
 			handleDel: function (index, row) {
@@ -214,25 +232,26 @@
 			},
 			//编辑
 			editSubmit: function () {
-				this.$refs.editForm.validate((valid) => {
+			    let vm = this
+                vm.$refs.editForm.validate((valid) => {
 					if (valid) {
 						this.$confirm('确认提交吗？', '提示', {}).then(() => {
-							this.editLoading = true;
+                            vm.editLoading = true;
 							//NProgress.start();
-							let para = Object.assign({}, this.editForm);
-							console.log(JSON.stringify(para))
+							let params = Object.assign({}, this.editForm);
+							console.log(JSON.stringify(params))
 							// para.birth = (!para.birth || para.birth == '') ? '' : util.formatDate.format(new Date(para.birth), 'yyyy-MM-dd');
-                            editDict(para).then((res) => {
-								this.editLoading = false;
-                                //NProgress.done();
-                                this.$message({
-                                    message: '提交成功',
-                                    type: 'success'
-                                });
-                                this.$refs['editForm'].resetFields();
-                                this.editFormVisible = false;
-                                this.serch();
-							});
+                            axiosApi(instanceUrl.editDict,params).then((res) => {
+                                vm.editLoading = true;
+                                vm.listLoading = false;
+								//rest表单
+                                vm.$refs['editForm'].resetFields();
+                                //关闭修改窗
+                                vm.editFormVisible = false;
+                                vm.serch();
+                            }).catch((error) => {
+                                console.log("报错了")
+                            })
 						});
 					}
 				});

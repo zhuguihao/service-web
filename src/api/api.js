@@ -18,6 +18,6 @@ export const editUser = params => { return axios.get(`${base}/user/edit`, { para
 
 export const addUser = params => { return axios.get(`${base}/user/add`, { params: params }); };
 
-export const getDict = params => { return axios.post(`${base}/sys/getDict`, {params:params})};
+export const getDict = params => { return axios.post(`${api}/serviceCenter/getDict`, {params:params})};
 
-export const editDict = params => { return axios.post(`${api}/appService/serviceCenter/getDict`, {params:params})};
+export const editDict = params => { return axios.post(`${base}/sys/editDict`, {params:params})};
