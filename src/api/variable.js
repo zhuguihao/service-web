@@ -6,7 +6,7 @@ let utils = {
     /**
      * 接口超时时间
      */
-    instanceTimeout: 3000,
+    instanceTimeout: 30000,
     /**
      * 请求基本地址
      */

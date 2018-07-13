@@ -3,10 +3,10 @@
 		<!--工具条-->
 		<el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
 			<el-form :inline="true" :model="filters">
-				<el-form-item>
+				<el-form-item label="代码：">
 					<el-input v-model="filters.code" placeholder="代码"></el-input>
 				</el-form-item>
-				<el-form-item>
+				<el-form-item label="值：">
 					<el-input v-model="filters.value" placeholder="值"></el-input>
 				</el-form-item>
 				<el-form-item>
@@ -19,33 +19,29 @@
 		</el-col>
 
 		<!--列表-->
-		<el-table :data="dict" highlight-current-row v-loading="listLoading" @selection-change="selsChange" style="width: 100%;">
-			<el-table-column type="selection" width="55">
-			</el-table-column>
-			<!--<el-table-column type="index" width="60">-->
-			<!--</el-table-column>-->
+		<el-table :data="dict" highlight-current-row v-loading="listLoading" style="width: 100%;">
 			<el-table-column prop="code" label="代码" width="120" sortable>
 			</el-table-column>
-			<!--<el-table-column prop="value" label="值" width="100" :formatter="formatSex" sortable>-->
-			<!--</el-table-column>-->
+			<el-table-column prop="parentId" label="父级代码" width="120" sortable
+							 :formatter="formatCode">
+			</el-table-column>
 			<el-table-column prop="value" label="值" width="100" sortable>
+			</el-table-column>
+			<el-table-column prop="remarks" label="描述" min-width="120" sortable>
 			</el-table-column>
 			<el-table-column prop="isDel" label="是否禁用" width="120" sortable
 							 :formatter="formatDel">
 			</el-table-column>
-			<el-table-column prop="remarks" label="描述" min-width="120" sortable>
-			</el-table-column>
-			<el-table-column label="操作" width="150">
+			<el-table-column label="操作" width="200">
 				<template slot-scope="scope">
 					<el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-					<el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
+					<el-button size="small" @click="handleAddChildren(scope.$index, scope.row)">新增子节点</el-button>
 				</template>
 			</el-table-column>
 		</el-table>
 
 		<!--工具条-->
 		<el-col :span="24" class="toolbar">
-			<el-button type="danger" @click="batchRemove" :disabled="this.sels.length===0">批量删除</el-button>
 			<el-pagination layout="prev, pager, next" @current-change="handleCurrentChange" :page-size="10" :total="total" style="float:right;">
 			</el-pagination>
 		</el-col>
@@ -53,21 +49,24 @@
 		<!--编辑界面-->
 		<el-dialog title="编辑" v-model="editFormVisible" :close-on-click-modal="false">
 			<el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
+				<el-form-item label="父级节点" prop="parentId">
+					<el-input v-model="editForm.parentId" auto-complete="off" disabled/>
+				</el-form-item>
 				<el-form-item label="代码" prop="code">
 					<el-input v-model="editForm.code" auto-complete="off" disabled/>
 				</el-form-item>
 				<el-form-item label="值" prop="value">
 					<el-input v-model="editForm.value" auto-complete="off" />
 				</el-form-item>
+				<el-form-item label="描述" prop="remarks">
+					<!--<el-input v-model="editForm.remarks" auto-complete="off"></el-input>-->
+					<el-input type="textarea" v-model="editForm.remarks" />
+				</el-form-item>
 				<el-form-item label="是否禁用">
 					<el-radio-group v-model="editForm.isDel">
 						<el-radio class="radio" label="N">否</el-radio>
 						<el-radio class="radio" label="Y">是</el-radio>
 					</el-radio-group>
-				</el-form-item>
-				<el-form-item label="描述" prop="value">
-					<!--<el-input v-model="editForm.remarks" auto-complete="off"></el-input>-->
-					<el-input type="textarea" v-model="editForm.remarks" />
 				</el-form-item>
 			</el-form>
 			<div slot="footer" class="dialog-footer">
@@ -79,23 +78,21 @@
 		<!--新增界面-->
 		<el-dialog title="新增" v-model="addFormVisible" :close-on-click-modal="false">
 			<el-form :model="addForm" label-width="80px" :rules="addFormRules" ref="addForm">
-				<el-form-item label="姓名" prop="name">
-					<el-input v-model="addForm.name" auto-complete="off"></el-input>
+				<el-form-item label="代码" prop="code">
+					<el-input v-model="addForm.code" auto-complete="off"/>
 				</el-form-item>
-				<el-form-item label="性别">
-					<el-radio-group v-model="addForm.sex">
-						<el-radio class="radio" :label="1">男</el-radio>
-						<el-radio class="radio" :label="0">女</el-radio>
+				<el-form-item label="值" prop="value">
+					<el-input v-model="addForm.value" auto-complete="off" />
+				</el-form-item>
+				<el-form-item label="描述" prop="remarks" auto-complete="off" >
+					<!--<el-input v-model="editForm.remarks" auto-complete="off"></el-input>-->
+					<el-input type="textarea" v-model="addForm.remarks" />
+				</el-form-item>
+				<el-form-item label="是否禁用">
+					<el-radio-group v-model="addForm.isDel">
+						<el-radio class="radio" label="N">否</el-radio>
+						<el-radio class="radio" label="Y">是</el-radio>
 					</el-radio-group>
-				</el-form-item>
-				<el-form-item label="年龄">
-					<el-input-number v-model="addForm.age" :min="0" :max="200"></el-input-number>
-				</el-form-item>
-				<el-form-item label="生日">
-					<el-date-picker type="date" placeholder="选择日期" v-model="addForm.birth"></el-date-picker>
-				</el-form-item>
-				<el-form-item label="地址">
-					<el-input type="textarea" v-model="addForm.addr"></el-input>
 				</el-form-item>
 			</el-form>
 			<div slot="footer" class="dialog-footer">
@@ -127,45 +124,61 @@
 				total: 0,
 				page: 1,
 				listLoading: false,
-				sels: [],//列表选中列
-
 				editFormVisible: false,//编辑界面是否显示
 				editLoading: false,
 				editFormRules: {
-					name: [
-						{ required: true, message: '请输入姓名', trigger: 'blur' }
+                    code: [
+                        { required: true, message: '请输入代码', trigger: 'blur' }
+                    ],
+					value: [
+						{ required: true, message: '请输入值', trigger: 'blur' }
 					]
 				},
 				//编辑界面数据
 				editForm: {
-					id: 0,
-					name: '',
-					sex: -1,
-					age: 0,
-					birth: '',
-					addr: ''
+					id: '',
+					code: '',
+					value: '',
+					isDel: 'N',
 				},
 
 				addFormVisible: false,//新增界面是否显示
 				addLoading: false,
 				addFormRules: {
-					name: [
-						{ required: true, message: '请输入姓名', trigger: 'blur' }
+                    code: [
+                        { required: true, message: '请输入代码', trigger: 'blur' }
+                    ],
+					value: [
+                        { required: true, message: '请输入值', trigger: 'blur' }
 					]
 				},
 				//新增界面数据
 				addForm: {
-					name: '',
-					sex: -1,
-					age: 0,
-					birth: '',
-					addr: ''
+                    id: '',
+					parentId:'',
+                    code: '',
+                    value: '',
+                    isDel: "N",
 				}
 
 			}
 		},
 		methods: {
-			//性别显示转换
+
+            /**
+			 * 父节点ID转换成父节点Code
+             */
+            formatCode(row, column) {
+                let vm = this
+                if(row.parentId){
+                    let data = vm.dict.filter(item => row.parentId.includes(item.id))
+					return data.length>0?data[0].code:row.parentId;
+                }
+                return row.parentId;
+            },
+            /**
+             * 是否禁用转换
+             */
             formatDel: function (row, column) {
 				return row.isDel == 'N' ? '否' : row.isDel == 'Y' ? '是' : '未知';
 			},
@@ -193,41 +206,32 @@
                     console.log("报错了")
                 })
 			},
-			//删除
-			handleDel: function (index, row) {
-				this.$confirm('确认删除该记录吗?', '提示', {
-					type: 'warning'
-				}).then(() => {
-					this.listLoading = true;
-					//NProgress.start();
-					let para = { id: row.id };
-					removeUser(para).then((res) => {
-						this.listLoading = false;
-						//NProgress.done();
-						this.$message({
-							message: '删除成功',
-							type: 'success'
-						});
-						this.serch();
-					});
-				}).catch(() => {
-
-				});
-			},
 			//显示编辑界面
 			handleEdit: function (index, row) {
 				this.editFormVisible = true;
+				this.editLoading = false;
 				this.editForm = Object.assign({}, row);
 			},
+            //显示子节点新增界面
+            handleAddChildren: function (index, row) {
+                this.addFormVisible = true;
+                this.addForm = {
+                    id: '',
+                    parentId:row.id,
+                    code: '',
+                    value: '',
+                    isDel: "N",
+                };
+            },
 			//显示新增界面
 			handleAdd: function () {
 				this.addFormVisible = true;
 				this.addForm = {
-					name: '',
-					sex: -1,
-					age: 0,
-					birth: '',
-					addr: ''
+                    id: '',
+                    parentId:'',
+                    code: '',
+                    value: '',
+                    isDel: "N",
 				};
 			},
 			//编辑
@@ -244,11 +248,22 @@
                             axiosApi(instanceUrl.editDict,params).then((res) => {
                                 vm.editLoading = true;
                                 vm.listLoading = false;
-								//rest表单
+                                //rest表单
                                 vm.$refs['editForm'].resetFields();
-                                //关闭修改窗
-                                vm.editFormVisible = false;
-                                vm.serch();
+                                if("success" === res.status){
+                                    //关闭修改窗
+                                    vm.editFormVisible = false;
+                                    this.$message({
+                                        message: '修改成功',
+                                        type: 'success'
+                                    });
+                                    vm.serch();
+								}else{
+                                    this.$message({
+                                        message: '修改异常',
+                                        type: 'error'
+                                    });
+								}
                             }).catch((error) => {
                                 console.log("报错了")
                             })
@@ -261,50 +276,34 @@
 				this.$refs.addForm.validate((valid) => {
 					if (valid) {
 						this.$confirm('确认提交吗？', '提示', {}).then(() => {
-							this.addLoading = true;
 							//NProgress.start();
-							let para = Object.assign({}, this.addForm);
-							para.birth = (!para.birth || para.birth == '') ? '' : util.formatDate.format(new Date(para.birth), 'yyyy-MM-dd');
-							addUser(para).then((res) => {
-								this.addLoading = false;
-								//NProgress.done();
-								this.$message({
-									message: '提交成功',
-									type: 'success'
-								});
-								this.$refs['addForm'].resetFields();
-								this.addFormVisible = false;
-								this.serch();
-							});
+							let params = Object.assign({}, this.addForm);
+                            this.addLoading = true;
+                            axiosApi(instanceUrl.addDict,params).then((res) => {
+                                this.addLoading = false;
+                                //NProgress.done();
+                                this.$refs['addForm'].resetFields();
+                                if("success" === res.status){
+                                    //关闭新增窗口
+                                    this.addFormVisible = false;
+                                    this.$message({
+                                        message: '新增成功',
+                                        type: 'success'
+                                    });
+                                    vm.serch();
+                                }else{
+                                    this.$message({
+                                        message: '新增异常',
+                                        type: 'error'
+                                    });
+                                }
+                            }).catch((error) => {
+                                console.log("报错了")
+                            })
 						});
 					}
 				});
 			},
-			selsChange: function (sels) {
-				this.sels = sels;
-			},
-			//批量删除
-			batchRemove: function () {
-				var ids = this.sels.map(item => item.id).toString();
-				this.$confirm('确认删除选中记录吗？', '提示', {
-					type: 'warning'
-				}).then(() => {
-					this.listLoading = true;
-					//NProgress.start();
-					let para = { ids: ids };
-					batchRemoveUser(para).then((res) => {
-						this.listLoading = false;
-						//NProgress.done();
-						this.$message({
-							message: '删除成功',
-							type: 'success'
-						});
-						this.serch();
-					});
-				}).catch(() => {
-
-				});
-			}
 		},
 		mounted() {
 			this.serch();
