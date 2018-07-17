@@ -10,6 +10,10 @@ let utils = {
     /**
      * 请求基本地址
      */
-    instanceBaseUrl:"api"
+    instanceBaseUrl:"api",
+    /**
+     * 分页数量
+     */
+    size:10,
 }
 export default utils;

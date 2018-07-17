@@ -10,7 +10,10 @@ import Page5 from './views/nav2/Page5.vue'
 import Page6 from './views/nav3/Page6.vue'
 import echarts from './views/charts/echarts.vue'
 import dict from './views/sys/dict.vue'
+import Vue from 'vue'
+import Router from 'vue-router'
 
+Vue.use(Router)
 let routes = [
     {
         path: '/login',
@@ -24,7 +27,7 @@ let routes = [
         name: '',
         hidden: true
     },
-    //{ path: '/main', component: Main },
+    // { path: '/main', component: Main },
     {
         path: '/',
         component: Home,
@@ -82,4 +85,4 @@ let routes = [
     }
 ];
 
-export default routes;
+export default new Router({routes:routes});

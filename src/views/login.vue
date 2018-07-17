@@ -17,7 +17,10 @@
 
 <script>
   import { requestLogin } from '../api/api';
+  import MenuUtils from '@/utils/MenuUtils'
   //import NProgress from 'nprogress'
+
+  var routers = []
   export default {
     data() {
       return {
@@ -39,13 +42,75 @@
         checked: true
       };
     },
+      mounted(){
+        let vm = this
+          let data = [{
+              path: '/',
+              component: "Home",
+              name: '导航sadasdsada',
+              iconCls: 'el-icon-message',//图标样式class
+              children: [
+                  { path: '/main', component: "Main", name: 'adasdasd', hidden: true },
+                  { path: '/table', component: "Table", name: 'asfasf' },
+                  { path: '/form', component: "Form", name: 'afaf' },
+                  { path: '/user', component: "user", name: 'adasdadasdas' },
+              ]
+          }];
+
+          // let old = [{
+          //     "path":"/",
+          //     "component":"Home",
+          //     "name":"导航6666662",
+          //     "iconCls":"el-icon-setting",
+          //     "hidden":false,
+          //     "children":[
+          //         {
+          //             "path":"menuTwoone",
+          //             "component":"Main",
+          //             "leaf":true,
+          //             "name":"导航2--1级菜单1"
+          //         },
+          //         {
+          //             "path":"menuTwotwo",
+          //             "component":"Main",
+          //             "hidden":true,
+          //             "hidden":true,
+          //             "name":"导航2--1级菜单2"
+          //         }
+          //     ]
+          // }]
+
+          // let old = [{
+          //     path: '/',
+          //     component: 'Home',
+          //     name: '字典表1',
+          //     iconCls: 'el-icon-setting',
+          //     children: [
+          //         { path: '/dict', component: 'sys/dict', name: '字典表' }
+          //     ]
+          // }]
+          let old = [{
+              path: '/',
+              component: 'Home',
+              name: '系统配置',
+              iconCls: 'el-icon-setting',
+              children: [
+                  { path: '/dict', component: 'sys/dict', name: '字典表' }
+              ]
+          }]
+          window.sessionStorage.setItem('router',JSON.stringify(old))
+          MenuUtils(routers,old)
+          console.log(JSON.stringify(routers))
+      },
     methods: {
       handleReset2() {
         this.$refs.ruleForm2.resetFields();
       },
       handleSubmit2(ev) {
+
         var _this = this;
         this.$refs.ruleForm2.validate((valid) => {
+
           if (valid) {
             //_this.$router.replace('/table');
             this.logining = true;
@@ -61,8 +126,9 @@
                   type: 'error'
                 });
               } else {
+                  this.$router.addRoutes(routers)
                 sessionStorage.setItem('user', JSON.stringify(user));
-                this.$router.push({ path: '/table' });
+                this.$router.push({ path: '/dict' });
               }
             });
           } else {

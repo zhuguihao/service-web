@@ -25,7 +25,8 @@
 				<!--导航菜单-->
 				<el-menu :default-active="$route.path" class="el-menu-vertical-demo" @open="handleopen" @close="handleclose" @select="handleselect"
 					 unique-opened router v-show="!collapsed">
-					<template v-for="(item,index) in $router.options.routes" v-if="!item.hidden">
+					<!--<template v-for="(item,index) in $router.options.routes" v-if="!item.hidden">-->
+					<template v-for="(item,index) in menus" v-if="!item.hidden">
 						<el-submenu :index="index+''" v-if="!item.leaf">
 							<template slot="title"><i :class="item.iconCls"></i>{{item.name}}</template>
 							<el-menu-item v-for="child in item.children" :index="child.path" :key="child.path" v-if="!child.hidden">{{child.name}}</el-menu-item>
@@ -77,6 +78,7 @@
 	export default {
 		data() {
 			return {
+			    menus:[],
 				sysName:'运维中心',
 				collapsed:false,
 				sysUserName: '',
@@ -93,6 +95,31 @@
 				}
 			}
 		},
+        mounted() {
+		    let vm = this
+            var user = sessionStorage.getItem('user');
+            if (user) {
+                user = JSON.parse(user);
+                this.sysUserName = user.name || '';
+                this.sysUserAvatar = user.avatar || '';
+            }
+
+            // console.log(JSON.stringify(vm.$router.options))
+            let newRouter = JSON.parse(window.sessionStorage.getItem('router'))
+            let menus = []
+            if (newRouter) {
+		        menus = Object.assign(menus,vm.$router.options.routes)
+                newRouter.forEach((item)=> {
+                    let menu = Object.assign({}, item)
+                    menus.push(menu)
+                })
+			}
+			vm.menus = menus
+			console.log("menus:"+JSON.stringify(menus))
+
+
+
+        },
 		methods: {
 			onSubmit() {
 				console.log('submit!');
@@ -104,6 +131,8 @@
 				//console.log('handleclose');
 			},
 			handleselect: function (a, b) {
+                console.log(JSON.stringify(a))
+                console.log(JSON.stringify(b))
 			},
 			//退出登录
 			logout: function () {
@@ -126,15 +155,6 @@
 			showMenu(i,status){
 				this.$refs.menuCollapsed.getElementsByClassName('submenu-hook-'+i)[0].style.display=status?'block':'none';
 			}
-		},
-		mounted() {
-			var user = sessionStorage.getItem('user');
-			if (user) {
-				user = JSON.parse(user);
-				this.sysUserName = user.name || '';
-				this.sysUserAvatar = user.avatar || '';
-			}
-
 		}
 	}
 
