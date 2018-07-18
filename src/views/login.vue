@@ -44,58 +44,14 @@
     },
       mounted(){
         let vm = this
-          let data = [{
-              path: '/',
-              component: "Home",
-              name: '导航sadasdsada',
-              iconCls: 'el-icon-message',//图标样式class
-              children: [
-                  { path: '/main', component: "Main", name: 'adasdasd', hidden: true },
-                  { path: '/table', component: "Table", name: 'asfasf' },
-                  { path: '/form', component: "Form", name: 'afaf' },
-                  { path: '/user', component: "user", name: 'adasdadasdas' },
-              ]
-          }];
-
-          // let old = [{
-          //     "path":"/",
-          //     "component":"Home",
-          //     "name":"导航6666662",
-          //     "iconCls":"el-icon-setting",
-          //     "hidden":false,
-          //     "children":[
-          //         {
-          //             "path":"menuTwoone",
-          //             "component":"Main",
-          //             "leaf":true,
-          //             "name":"导航2--1级菜单1"
-          //         },
-          //         {
-          //             "path":"menuTwotwo",
-          //             "component":"Main",
-          //             "hidden":true,
-          //             "hidden":true,
-          //             "name":"导航2--1级菜单2"
-          //         }
-          //     ]
-          // }]
-
-          // let old = [{
-          //     path: '/',
-          //     component: 'Home',
-          //     name: '字典表1',
-          //     iconCls: 'el-icon-setting',
-          //     children: [
-          //         { path: '/dict', component: 'sys/dict', name: '字典表' }
-          //     ]
-          // }]
           let old = [{
               path: '/',
               component: 'Home',
               name: '系统配置',
               iconCls: 'el-icon-setting',
               children: [
-                  { path: '/dict', component: 'sys/dict', name: '字典表' }
+                  { path: '/dict', component: 'sys/dict', name: '字典表' },
+                  { path: '/user', component: 'sys/user', name: '用户表' }
               ]
           }]
           window.sessionStorage.setItem('router',JSON.stringify(old))

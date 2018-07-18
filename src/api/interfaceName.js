@@ -11,5 +11,13 @@ let instanceUrl = {
      * 添加数据字典表
      */
     addDict: "/serviceCenter/addDict",
+    /**
+     * 添加用户表信息
+     */
+    getUser: "/serviceCenter/getUser",
+    /**
+     * 修改数据字典表
+     */
+    editUser: "/serviceCenter/editUser",
 }
 export default instanceUrl;
