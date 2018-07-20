@@ -174,8 +174,14 @@
             formatCode(row, column) {
                 let vm = this
                 if(row.parentId){
-                    let data = vm.dict.filter(item => row.parentId.includes(item.id))
-					return data.length>0?data[0].code:row.parentId;
+                    let items ={}
+                    let data = vm.dict.filter(item => {
+                        if(row.parentId === item.id){
+                            items = item
+                            return true
+						}
+					})
+					return data.length>0?items.code: row.parentId;
                 }
                 return row.parentId;
             },
