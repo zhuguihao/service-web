@@ -35,6 +35,9 @@ let instanceUrl = {
      * 添加菜单表
      */
     addMenu: "/menu/addMenu",
-
+    /**
+     * 查询角色表
+     */
+    getGroup: "/serviceCenter/getGroup",
 }
 export default instanceUrl;

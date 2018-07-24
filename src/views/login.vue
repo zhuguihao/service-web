@@ -54,7 +54,6 @@
                   { path: '/menu', component: 'sys/menu', name: '菜单表' },
                   { path: '/role', component: 'sys/role', name: '角色表' },
                   { path: '/user', component: 'sys/user', name: '用户表' },
-
               ]
           }]
           window.sessionStorage.setItem('router',JSON.stringify(old))

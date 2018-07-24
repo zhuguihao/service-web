@@ -3,24 +3,11 @@
 		<!--工具条-->
 		<el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
 			<el-form :inline="true" :model="filters">
-				<el-form-item label="菜单名称：">
-					<el-input v-model="filters.menuName" placeholder="请输入菜单名称"></el-input>
+				<el-form-item label="角色代码：">
+					<el-input v-model="filters.groupCode" placeholder="请输入角色代码"></el-input>
 				</el-form-item>
-				<el-form-item label="菜单类型：">
-					<!--<el-input v-model="filters.type" placeholder=""></el-input>-->
-					<!--<el-cascader-->
-							<!--:options="typeList"-->
-							<!--v-model="filters.type"-->
-							<!--:props="props">-->
-					<!--</el-cascader>-->
-					<el-select v-model="filters.type" placeholder="请选择菜单类型">
-						<el-option
-								v-for="item in typeList"
-								:key="item.code"
-								:label="item.value"
-								:value="item.code">
-						</el-option>
-					</el-select>
+				<el-form-item label="角色名称：">
+					<el-input v-model="filters.groupName" placeholder="请输入角色名称"></el-input>
 				</el-form-item>
 				<el-form-item>
 					<el-button type="primary" v-on:click="serch">查询</el-button>
@@ -32,15 +19,10 @@
 		</el-col>
 
 		<!--列表-->
-		<el-table :data="menuList" highlight-current-row v-loading="listLoading" style="width: 100%;">
-			<el-table-column prop="menuName" label="菜单名称" width="120" sortable>
+		<el-table :data="groupList" highlight-current-row v-loading="listLoading" style="width: 100%;">
+			<el-table-column prop="groupCode" label="角色代码" min-width="120" sortable>
 			</el-table-column>
-			<el-table-column prop="type" label="菜单类型" width="120" sortable
-							 :formatter="formatType">
-			</el-table-column>
-			<el-table-column prop="menuUrl" label="菜单URL" width="230" sortable>
-			</el-table-column>
-			<el-table-column prop="menuParams" label="菜单参数" min-width="120"sortable>
+			<el-table-column prop="groupName" label="角色名称" min-width="120" sortable>
 			</el-table-column>
 			<el-table-column prop="isDel" label="是否禁用" width="120" sortable
 							 :formatter="formatDel">
@@ -145,14 +127,14 @@
 				 * 过滤条件
                  */
 				filters: {
-                    menuName: '',
-                    type:[]
+                    groupCode: '',
+                    groupName: '',
 				},
-                menu: [],
+                group: [],
 				/**
 				 * 分页之后的数据展示
 				 */
-                menuList:[],
+                groupList:[],
 				total: 0,
 				page: 1,
 				size:utils.size,
@@ -213,19 +195,6 @@
 			}
 		},
 		methods: {
-		    /**
-			 * 转换菜单类型
-			 */
-            formatType(row, column){
-                let typeDesc = row.type;
-                this.typeList.filter((item)=>{
-                    if(row.type===item.code){
-                        return typeDesc = item.value
-                    }
-                })
-
-                return typeDesc
-			},
             /**
              * 是否禁用转换
              */
@@ -235,7 +204,7 @@
 			handleCurrentChange(val) {
                 let vm = this
                 vm.page = val;
-                vm.menuList =  vm.menu.filter((u, index) => index < vm.size * vm.page && index >= vm.size * (vm.page - 1));
+                vm.groupList =  vm.group.filter((u, index) => index < vm.size * vm.page && index >= vm.size * (vm.page - 1));
 			},
             /**
 			 * 获取菜单类型数据字典
@@ -267,21 +236,20 @@
 			//获取用户列表
 			serch() {
 			    let vm = this
-				console.log(JSON.stringify(vm.filters.type[0]))
 				let params = {
 					// page: vm.page,
 					// size: vm.size,
-                    menuName: vm.filters.menuName,
-                    type: vm.filters.type?vm.filters.type:""
+                    groupCode: vm.filters.groupCode,
+                    groupName: vm.filters.groupName
 				};
                 vm.listLoading = true;
-                post(instanceUrl.getMenu,params).then((res) => {
+                post(instanceUrl.getGroup,params).then((res) => {
                     vm.listLoading = false;
                     console.log("成功回调："+JSON.stringify(res))
 					if("success" === res.status){
                         vm.total = res.data.length;
-                        vm.menu = res.data;
-                        vm.menuList = res.data.filter((u, index) => index < vm.size * vm.page && index >= vm.size * (vm.page - 1));
+                        vm.group = res.data;
+                        vm.groupList = res.data.filter((u, index) => index < vm.size * vm.page && index >= vm.size * (vm.page - 1));
 					}else{
                         console.log(res.msg)
 					}
