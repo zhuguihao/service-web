@@ -1,68 +1,61 @@
 <template>
 	<section>
 		<!--工具条-->
-		<el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
-			<el-form :inline="true" :model="filters">
-				<el-form-item label="角色代码：">
-					<el-input v-model="filters.groupCode" placeholder="请输入角色代码"></el-input>
-				</el-form-item>
-				<el-form-item label="角色名称：">
-					<el-input v-model="filters.groupName" placeholder="请输入角色名称"></el-input>
-				</el-form-item>
-				<el-form-item>
-					<el-button type="primary" v-on:click="serch">查询</el-button>
-				</el-form-item>
-				<el-form-item>
-					<el-button type="primary" @click="handleAdd">新增</el-button>
-				</el-form-item>
-			</el-form>
-		</el-col>
+		<div>
+			<el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
+				<el-form :inline="true" :model="filters">
+					<el-form-item label="角色代码：">
+						<el-input v-model="filters.groupCode" placeholder="请输入角色代码"></el-input>
+					</el-form-item>
+					<el-form-item label="角色名称：">
+						<el-input v-model="filters.groupName" placeholder="请输入角色名称"></el-input>
+					</el-form-item>
+					<el-form-item>
+						<el-button type="primary" v-on:click="serch">查询</el-button>
+					</el-form-item>
+					<el-form-item>
+						<el-button type="primary" @click="handleAdd">新增</el-button>
+					</el-form-item>
+				</el-form>
+			</el-col>
+		</div>
 
-		<!--列表-->
-		<el-table :data="groupList" highlight-current-row v-loading="listLoading" style="width: 100%;">
-			<el-table-column prop="groupCode" label="角色代码" min-width="120" sortable>
-			</el-table-column>
-			<el-table-column prop="groupName" label="角色名称" min-width="120" sortable>
-			</el-table-column>
-			<el-table-column prop="isDel" label="是否禁用" width="120" sortable
-							 :formatter="formatDel">
-			</el-table-column>
-			<el-table-column label="操作" width="120">
-				<template slot-scope="scope">
-					<el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-					<!--<el-button size="small" @click="handleAddChildren(scope.$index, scope.row)">新增子节点</el-button>-->
-				</template>
-			</el-table-column>
-		</el-table>
+		<div style="float: left;width: 100%;">
 
-		<!--工具条-->
-		<el-col :span="24" class="toolbar">
-			<el-pagination layout="prev, pager, next" @current-change="handleCurrentChange" :page-size="size" :total="total" style="float:right;">
-			</el-pagination>
-		</el-col>
+			<el-tree :data="groupList"
+					 node-key="id"
+					 :props="props"
+					 default-expand-all
+					 :expand-on-click-node="false">
+			  <span class="custom-tree-node" slot-scope="{ node, data }">
+				<span>{{ data.groupName }}</span>
+				<span>
+					<el-button class="btnDel" type="text" size="mini" icon="el-icon-delete" @click="() => removeGroup(node, data)" v-show="data.children.length ===0">
+						删除
+					  </el-button>
+				  <el-button class="btnAdd" type="text" size="mini" icon="el-icon-plus" @click="() => addGroup(data)">
+					新增
+				  </el-button>
+					<el-button class="btnEdit" type="text" size="mini" icon="el-icon-edit" @click="() => addGroup(data)">
+					编辑
+				  </el-button>
+					<el-button type="text" size="mini" icon="el-icon-menu" @click="() => removeGroup(node, data)">
+					配置角色菜单
+				  </el-button>
+				</span>
+			  </span>
+			</el-tree>
+
+		</div>
 
 		<!--编辑界面-->
-		<el-dialog title="编辑" v-model="editFormVisible" :close-on-click-modal="false">
+		<el-dialog title="编辑" :visible.sync="editFormVisible" :close-on-click-modal="false">
 			<el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
-				<el-form-item label="菜单名称" prop="menuName">
-					<el-input v-model="editForm.menuName" auto-complete="off" />
+				<el-form-item label="角色代码" prop="groupCode">
+					<el-input v-model="editForm.groupName" auto-complete="off" />
 				</el-form-item>
-				<el-form-item label="菜单类型" prop="type">
-				<el-select v-model="editForm.type" placeholder="请选择菜单类型">
-						<el-option
-								v-for="t in typeSelList"
-								:key="t.code"
-								:label="t.value"
-								:value="t.code">
-						</el-option>
-					</el-select>
-				</el-form-item>
-				<el-form-item label="菜单URL" prop="menuUrl">
-					<el-input v-model="editForm.menuUrl" auto-complete="off" />
-				</el-form-item>
-				<el-form-item label="菜单参数" prop="menuParams">
-					<!--<el-input v-model="editForm.remarks" auto-complete="off"></el-input>-->
-					<el-input type="textarea" v-model="editForm.menuParams" />
+				<el-form-item label="角色名称" prop="groupName">
+					<el-input v-model="editForm.groupName" auto-complete="off" />
 				</el-form-item>
 				<el-form-item label="是否禁用">
 					<el-radio-group v-model="editForm.isDel">
@@ -78,28 +71,14 @@
 		</el-dialog>
 
 		<!--新增界面-->
-		<el-dialog title="新增" v-model="addFormVisible" :close-on-click-modal="false">
+		<el-dialog title="新增" :visible.sync="addFormVisible":close-on-click-modal="false">
 			<el-form :model="addForm" label-width="80px" :rules="addFormRules" ref="addForm">
-                <el-form-item label="菜单名称" prop="menuName">
-                    <el-input v-model="addForm.menuName" auto-complete="off" />
-                </el-form-item>
-                <el-form-item label="菜单类型" prop="type">
-                    <el-select v-model="addForm.type" placeholder="请选择菜单类型">
-                        <el-option
-                                v-for="t in typeSelList"
-                                :key="t.code"
-                                :label="t.value"
-                                :value="t.code">
-                        </el-option>
-                    </el-select>
-                </el-form-item>
-                <el-form-item label="菜单URL" prop="menuUrl">
-                    <el-input v-model="addForm.menuUrl" auto-complete="off" />
-                </el-form-item>
-                <el-form-item label="菜单参数" prop="menuParams">
-                    <!--<el-input v-model="editForm.remarks" auto-complete="off"></el-input>-->
-                    <el-input type="textarea" v-model="addForm.menuParams" />
-                </el-form-item>
+				<el-form-item label="角色代码" prop="groupCode">
+					<el-input v-model="addForm.groupName" auto-complete="off" />
+				</el-form-item>
+				<el-form-item label="角色名称" prop="groupName">
+					<el-input v-model="addForm.groupName" auto-complete="off" />
+				</el-form-item>
                 <el-form-item label="是否禁用">
                     <el-radio-group v-model="addForm.isDel">
                         <el-radio class="radio" label="N">否</el-radio>
@@ -142,14 +121,11 @@
 				editFormVisible: false,//编辑界面是否显示
 				editLoading: false,
 				editFormRules: {
-                    menuName: [
-                        { required: true, message: '请输入菜单名称', trigger: 'blur' }
+                    groupCode: [
+                        { required: true, message: '请输入角色代码', trigger: 'blur' }
                     ],
-                    type: [
-						{ required: true, message: '请选择菜单类型', trigger: 'blur' }
-					],
-                    menuUrl: [
-                        { required: true, message: '请输入菜单地址', trigger: 'blur' }
+                    groupName: [
+                        { required: true, message: '请输入角色名称', trigger: 'blur' }
                     ]
 				},
 				//编辑界面数据
@@ -164,14 +140,11 @@
 				addFormVisible: false,//新增界面是否显示
 				addLoading: false,
 				addFormRules: {
-                    menuName: [
-                        { required: true, message: '请输入菜单名称', trigger: 'blur' }
+                    groupCode: [
+                        { required: true, message: '请输入角色代码', trigger: 'blur' }
                     ],
-                    type: [
-                        { required: true, message: '请选择菜单类型', trigger: 'blur' }
-                    ],
-                    menuUrl: [
-                        { required: true, message: '请输入菜单地址', trigger: 'blur' }
+                    groupName: [
+                        { required: true, message: '请输入角色名称', trigger: 'blur' }
                     ]
 				},
 				//新增界面数据
@@ -187,14 +160,27 @@
                 typeList:[],
 				//菜单转换值
                 props:{
-                    value: 'code',
-                    label: 'value'
+                    label: 'groupName'
                 },
 				//菜单类型集合
-                typeSelList:[]
+                typeSelList:[],
+
 			}
 		},
 		methods: {
+            // renderContent(h, { node, data, store }) {
+            //     return (
+            //         <span class="custom-tree-node">
+            //         <span>{node.label}</span>
+            //     <span>
+            //     <el-button size="mini" type="text" on-click={ () => this.append(data) }>Append</el-button>
+            //     <el-button size="mini" type="text" on-click={ () => this.remove(node, data) }>Delete</el-button>
+            //     </span>
+            //     </span>);
+            // },
+            handleNodeClick(data) {
+                console.log(data);
+            },
             /**
              * 是否禁用转换
              */
@@ -347,7 +333,15 @@
 						});
 					}
 				});
-			}
+			},
+            addGroup(data){
+                console.log(JSON.stringify(data))
+				console.log("id:"+data.id)
+			},
+            removeGroup(node,data){
+                console.log(node)
+                console.log(JSON.stringify(data))
+			},
 		},
         mounted() {
             this.serch();
@@ -358,5 +352,22 @@
 </script>
 
 <style scoped>
-
+	.custom-tree-node {
+		flex: 1;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		font-size: 14px;
+		padding-right: 8px;
+		/*background-color: ;*/
+	}
+	.btnDel{
+		color: #F56C6C;
+	}
+	.btnEdit{
+		color: #E6A23C;
+	}
+	.btnAdd{
+		color: #67C23A;
+	}
 </style>

@@ -60,7 +60,7 @@
 		</el-col>
 
 		<!--编辑界面-->
-		<el-dialog title="编辑" v-model="editFormVisible" :close-on-click-modal="false">
+		<el-dialog title="编辑" :visible.sync="editFormVisible" :close-on-click-modal="false">
 			<el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
 				<el-form-item label="菜单名称" prop="menuName">
 					<el-input v-model="editForm.menuName" auto-complete="off" />
@@ -96,7 +96,8 @@
 		</el-dialog>
 
 		<!--新增界面-->
-		<el-dialog title="新增" v-model="addFormVisible" :close-on-click-modal="false">
+		<el-dialog title="新增" :close-on-click-modal="false"
+				   :visible.sync="addFormVisible">
 			<el-form :model="addForm" label-width="80px" :rules="addFormRules" ref="addForm">
                 <el-form-item label="菜单名称" prop="menuName">
                     <el-input v-model="addForm.menuName" auto-complete="off" />
@@ -299,8 +300,9 @@
 
 			//显示新增界面
 			handleAdd: function () {
-				this.addFormVisible = true;
-				this.addForm = {
+                let vm = this
+                vm.addFormVisible = true;
+                vm.addForm = {
                     id: '',
                     menuName: '',
                     type: '',
