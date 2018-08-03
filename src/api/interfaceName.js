@@ -28,6 +28,10 @@ let instanceUrl = {
      */
     getMenu: "/serviceCenter/getMenu",
     /**
+     * 查询角色菜单表关联信息
+     */
+    getGroupMenu: "/menu/getGroupMenu",
+    /**
      * 修改菜单表
      */
     editMenu: "/menu/editMenu",
@@ -39,5 +43,17 @@ let instanceUrl = {
      * 查询角色表
      */
     getGroup: "/serviceCenter/getGroup",
+    /**
+     * 新增角色表--添加子节点数据
+     */
+    addGroup: "/group/addGroupChildren",
+    /**
+     * 修改角色表
+     */
+    editGroup: "/group/editGroup",
+    /**
+     * 角色关联菜单表
+     */
+    relationMenu: "/menu/relationMenu",
 }
 export default instanceUrl;

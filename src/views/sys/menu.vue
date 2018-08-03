@@ -7,12 +7,6 @@
 					<el-input v-model="filters.menuName" placeholder="请输入菜单名称"></el-input>
 				</el-form-item>
 				<el-form-item label="菜单类型：">
-					<!--<el-input v-model="filters.type" placeholder=""></el-input>-->
-					<!--<el-cascader-->
-							<!--:options="typeList"-->
-							<!--v-model="filters.type"-->
-							<!--:props="props">-->
-					<!--</el-cascader>-->
 					<el-select v-model="filters.type" placeholder="请选择菜单类型">
 						<el-option
 								v-for="item in typeList"
@@ -82,6 +76,12 @@
 					<!--<el-input v-model="editForm.remarks" auto-complete="off"></el-input>-->
 					<el-input type="textarea" v-model="editForm.menuParams" />
 				</el-form-item>
+				<el-form-item label="是否标题" prop="isTitle">
+					<el-radio-group v-model="editForm.isTitle">
+						<el-radio class="radio" label="N">否</el-radio>
+						<el-radio class="radio" label="Y">是</el-radio>
+					</el-radio-group>
+				</el-form-item>
 				<el-form-item label="是否禁用">
 					<el-radio-group v-model="editForm.isDel">
 						<el-radio class="radio" label="N">否</el-radio>
@@ -116,9 +116,14 @@
                     <el-input v-model="addForm.menuUrl" auto-complete="off" />
                 </el-form-item>
                 <el-form-item label="菜单参数" prop="menuParams">
-                    <!--<el-input v-model="editForm.remarks" auto-complete="off"></el-input>-->
                     <el-input type="textarea" v-model="addForm.menuParams" />
                 </el-form-item>
+				<el-form-item label="是否标题" prop="isTitle">
+					<el-radio-group v-model="addForm.isTitle">
+						<el-radio class="radio" label="N">否</el-radio>
+						<el-radio class="radio" label="Y">是</el-radio>
+					</el-radio-group>
+				</el-form-item>
                 <el-form-item label="是否禁用">
                     <el-radio-group v-model="addForm.isDel">
                         <el-radio class="radio" label="N">否</el-radio>
@@ -179,6 +184,8 @@
                     menuUrl: '',
                     menuParams: '',
                     isDel: 'N',
+                    isTitle: 'N',
+					parentId:'',
 				},
 				addFormVisible: false,//新增界面是否显示
 				addLoading: false,
@@ -201,6 +208,8 @@
                     menuUrl: '',
                     menuParams: '',
                     isDel: 'N',
+                    isTitle: 'N',
+                    parentId:'',
 				},
 				//菜单类型
                 typeList:[],
@@ -265,7 +274,7 @@
                     console.log("报错了")
                 })
 			},
-			//获取用户列表
+			//获取菜单列表
 			serch() {
 			    let vm = this
 				console.log(JSON.stringify(vm.filters.type[0]))
@@ -309,6 +318,8 @@
                     menuUrl: '',
                     menuParams: '',
                     isDel: 'N',
+                    isTitle: 'N',
+                    parentId:'',
 				};
 			},
 			//编辑

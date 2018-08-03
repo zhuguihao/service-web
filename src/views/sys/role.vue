@@ -11,11 +11,11 @@
 						<el-input v-model="filters.groupName" placeholder="请输入角色名称"></el-input>
 					</el-form-item>
 					<el-form-item>
-						<el-button type="primary" v-on:click="serch">查询</el-button>
+						<el-button type="primary" v-on:click="filterSerch">查询</el-button>
 					</el-form-item>
-					<el-form-item>
-						<el-button type="primary" @click="handleAdd">新增</el-button>
-					</el-form-item>
+					<!--<el-form-item v-show="groupList.length===0">-->
+						<!--<el-button type="primary" @click="handleAdd">新增</el-button>-->
+					<!--</el-form-item>-->
 				</el-form>
 			</el-col>
 		</div>
@@ -26,20 +26,21 @@
 					 node-key="id"
 					 :props="props"
 					 default-expand-all
-					 :expand-on-click-node="false">
+					 :filter-node-method="filterNode"
+					 ref="greoupTree">
 			  <span class="custom-tree-node" slot-scope="{ node, data }">
 				<span>{{ data.groupName }}</span>
 				<span>
-					<el-button class="btnDel" type="text" size="mini" icon="el-icon-delete" @click="() => removeGroup(node, data)" v-show="data.children.length ===0">
+					<el-button class="btnDel" type="text" size="mini" icon="el-icon-delete" @click.stop="() => removeGroup(data)" v-show="data.children && data.children.length ===0">
 						删除
-					  </el-button>
-				  <el-button class="btnAdd" type="text" size="mini" icon="el-icon-plus" @click="() => addGroup(data)">
+					</el-button>
+				  <el-button class="btnAdd" type="text" size="mini" icon="el-icon-plus" @click.stop="() => handleAddChildren(data)">
 					新增
 				  </el-button>
-					<el-button class="btnEdit" type="text" size="mini" icon="el-icon-edit" @click="() => addGroup(data)">
+					<el-button class="btnEdit" type="text" size="mini" icon="el-icon-edit" @click.stop="() => handleEdit(data)">
 					编辑
 				  </el-button>
-					<el-button type="text" size="mini" icon="el-icon-menu" @click="() => removeGroup(node, data)">
+					<el-button type="text" size="mini" icon="el-icon-menu" @click.stop="() => configureGroup(data)">
 					配置角色菜单
 				  </el-button>
 				</span>
@@ -52,17 +53,17 @@
 		<el-dialog title="编辑" :visible.sync="editFormVisible" :close-on-click-modal="false">
 			<el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
 				<el-form-item label="角色代码" prop="groupCode">
-					<el-input v-model="editForm.groupName" auto-complete="off" />
+					<el-input v-model="editForm.groupCode" auto-complete="off" disabled/>
 				</el-form-item>
 				<el-form-item label="角色名称" prop="groupName">
 					<el-input v-model="editForm.groupName" auto-complete="off" />
 				</el-form-item>
-				<el-form-item label="是否禁用">
-					<el-radio-group v-model="editForm.isDel">
-						<el-radio class="radio" label="N">否</el-radio>
-						<el-radio class="radio" label="Y">是</el-radio>
-					</el-radio-group>
-				</el-form-item>
+				<!--<el-form-item label="是否禁用">-->
+					<!--<el-radio-group v-model="editForm.isDel">-->
+						<!--<el-radio class="radio" label="N">否</el-radio>-->
+						<!--<el-radio class="radio" label="Y">是</el-radio>-->
+					<!--</el-radio-group>-->
+				<!--</el-form-item>-->
 			</el-form>
 			<div slot="footer" class="dialog-footer">
 				<el-button @click.native="editFormVisible = false">取消</el-button>
@@ -74,21 +75,52 @@
 		<el-dialog title="新增" :visible.sync="addFormVisible":close-on-click-modal="false">
 			<el-form :model="addForm" label-width="80px" :rules="addFormRules" ref="addForm">
 				<el-form-item label="角色代码" prop="groupCode">
-					<el-input v-model="addForm.groupName" auto-complete="off" />
+					<el-input v-model="addForm.groupCode" auto-complete="off" />
 				</el-form-item>
 				<el-form-item label="角色名称" prop="groupName">
 					<el-input v-model="addForm.groupName" auto-complete="off" />
 				</el-form-item>
-                <el-form-item label="是否禁用">
-                    <el-radio-group v-model="addForm.isDel">
-                        <el-radio class="radio" label="N">否</el-radio>
-                        <el-radio class="radio" label="Y">是</el-radio>
-                    </el-radio-group>
-                </el-form-item>
+                <!--<el-form-item label="是否禁用">-->
+                    <!--<el-radio-group v-model="addForm.isDel">-->
+                        <!--<el-radio class="radio" label="N">否</el-radio>-->
+                        <!--<el-radio class="radio" label="Y">是</el-radio>-->
+                    <!--</el-radio-group>-->
+                <!--</el-form-item>-->
 			</el-form>
 			<div slot="footer" class="dialog-footer">
 				<el-button @click.native="addFormVisible = false">取消</el-button>
 				<el-button type="primary" @click.native="addSubmit" :loading="addLoading">提交</el-button>
+			</div>
+		</el-dialog>
+
+		<!--配置角色菜单界面-->
+		<el-dialog title="配置角色菜单" :visible.sync="configureVisible":close-on-click-modal="false">
+			<el-form :inline="true">
+				<el-form-item label="菜单类型：">
+					<el-select v-model="menuType" placeholder="请选择菜单类型"
+							   @change="selectChange">
+						<el-option
+								v-for="item in typeList"
+								:key="item.code"
+								:label="item.value"
+								:value="item.code">
+						</el-option>
+					</el-select>
+				</el-form-item>
+			</el-form>
+			<el-tree :data="menu"
+					 node-key="id"
+					 :props="menuProps"
+					 default-expand-all
+					 show-checkbox
+			         ref="menuTree">
+			  <span class="custom-tree-node" slot-scope="{ node, data }">
+				<span>{{ data.menuName }}</span>
+			  </span>
+			</el-tree>
+			<div slot="footer" class="dialog-footer">
+				<el-button @click.native="configureVisible = false">取消</el-button>
+				<el-button type="primary" @click.native="configureSubmit" :loading="configureLoading">提交</el-button>
 			</div>
 		</el-dialog>
 	</section>
@@ -108,6 +140,7 @@
 				filters: {
                     groupCode: '',
                     groupName: '',
+
 				},
                 group: [],
 				/**
@@ -150,10 +183,9 @@
 				//新增界面数据
 				addForm: {
                     id: '',
-                    menuName: '',
-                    type: '',
-                    menuUrl: '',
-                    menuParams: '',
+                    parentId: '',
+                    groupCode: '',
+                    groupName: '',
                     isDel: 'N',
 				},
 				//菜单类型
@@ -162,22 +194,73 @@
                 props:{
                     label: 'groupName'
                 },
+                menuProps:{
+                    label: 'menuName'
+				},
 				//菜单类型集合
                 typeSelList:[],
-
+				//角色菜单开关
+                configureVisible:false,
+				//角色菜单配置提交loading
+                configureLoading:false,
+				//角色菜单列表
+                groupMenu:{},
+				//菜单类型绑定
+				menuType:"",
+				//菜单列表
+                menu:[],
+				//选择的菜单列表
+                menuTreeCheckedKeys: [],
+				//选中的角色ID
+				roleId: "",
 			}
 		},
 		methods: {
-            // renderContent(h, { node, data, store }) {
-            //     return (
-            //         <span class="custom-tree-node">
-            //         <span>{node.label}</span>
-            //     <span>
-            //     <el-button size="mini" type="text" on-click={ () => this.append(data) }>Append</el-button>
-            //     <el-button size="mini" type="text" on-click={ () => this.remove(node, data) }>Delete</el-button>
-            //     </span>
-            //     </span>);
-            // },
+		    /**
+			 * 过滤查询条件
+			 */
+            filterSerch() {
+                this.$refs.greoupTree.filter(this.filters);
+            },
+		    /**
+			 * 过滤树形结构数据
+			 */
+            filterNode(value, data) {
+                if (!value) return true;
+                return data.groupCode.indexOf(value.groupCode) !== -1 && data.groupName.indexOf(value.groupName) !== -1;
+            },
+		    //查询菜单数据
+		    getMenuList(){
+                let vm = this
+                let params = {
+                    roleId: vm.roleId,
+                    type: vm.menuType
+                };
+                vm.listLoading = true;
+                post(instanceUrl.getGroupMenu,params).then((res) => {
+                    vm.listLoading = false;
+                    if("success" === res.status){
+                        vm.menu = res.data.menuList;
+                        let checked = Object.assign([],res.data.checked);
+						vm.setMenuTreeCheckedKeys(checked)
+                        // vm.menuList = res.data.filter((u, index) => index < vm.size * vm.page && index >= vm.size * (vm.page - 1));
+                    }else{
+                        console.log(res.msg)
+                    }
+                }).catch((error) => {
+                    vm.listLoading = false;
+                    console.log("报错了")
+                })
+			},
+			/**
+			 * 设置已选中的菜单栏
+			 */
+            setMenuTreeCheckedKeys(data){
+                this.$refs.menuTree.setCheckedKeys(data);
+			},
+            selectChange(){
+				this.getMenuList()
+			},
             handleNodeClick(data) {
                 console.log(data);
             },
@@ -205,12 +288,9 @@
                     vm.listLoading = false;
                     console.log("成功回调："+JSON.stringify(res))
                     if("success" === res.status) {
-                        vm.typeSelList = Object.assign([],res.data)
                         vm.typeList = Object.assign([],res.data)
-                        vm.typeList.push({
-                            code:"",
-                            value:"全部"
-                        })
+						vm.menuType = res.data.length>0?res.data[0].code:""
+						vm.getMenuList()
                     }else{
                         console.log(res.msg)
 					}
@@ -244,24 +324,64 @@
                     console.log("报错了")
                 })
 			},
+			//显示配置角色菜单
+            configureGroup(data){
+                let vm = this
+                vm.typeList = []
+                vm.menu = []
+                vm.configureVisible=true
+                vm.groupMenu = Object.assign({}, data);
+                console.log(JSON.stringify(vm.groupMenu))
+                vm.roleId = data.id
+
+                vm.getDictType()
+			},
 			//显示编辑界面
-			handleEdit: function (index, row) {
+			handleEdit: function (data) {
 				this.editFormVisible = true;
 				this.editLoading = false;
-				this.editForm = Object.assign({}, row);
+				this.editForm = Object.assign({}, data);
 			},
-
-			//显示新增界面
-			handleAdd: function () {
-				this.addFormVisible = true;
-				this.addForm = {
+            //显示子节点新增界面
+            handleAddChildren: function (row) {
+                this.addFormVisible = true;
+                this.addForm = {
                     id: '',
-                    menuName: '',
-                    type: '',
-                    menuUrl: '',
-                    menuParams: '',
+                    parentId: row.id,
+                    groupCode: '',
+                    groupName: '',
                     isDel: 'N',
-				};
+                };
+                console.log(JSON.stringify(this.addForm))
+            },
+			//删除子节点
+            removeGroup(data){
+                let vm = this
+                vm.$confirm('确认删除该节点吗吗？', '提示', {}).then(() => {
+                    let params = {
+                        id:data.id,
+                        isDel:"Y"
+					};
+                    vm.editLoading = true;
+                    post(instanceUrl.editGroup,params).then((res) => {
+                        vm.editLoading = false;
+                        if("success" === res.status){
+                            vm.$message({
+                                message: '修改成功',
+                                type: 'success'
+                            });
+                            vm.serch();
+                        }else{
+                            vm.$message({
+                                message: '修改异常',
+                                type: 'error'
+                            });
+                        }
+                    }).catch((error) => {
+                        vm.listLoading = false;
+                        console.log("报错了")
+                    });
+				});
 			},
 			//编辑
 			editSubmit: function () {
@@ -273,7 +393,7 @@
 							//NProgress.start();
 							let params = Object.assign({}, this.editForm);
                             vm.editLoading = true;
-                            post(instanceUrl.editMenu,params).then((res) => {
+                            post(instanceUrl.editGroup,params).then((res) => {
                                 vm.editLoading = false;
                                 vm.listLoading = false;
                                 //rest表单
@@ -300,6 +420,31 @@
 					}
 				});
 			},
+			//配置角色菜单
+            configureSubmit(){
+                let vm = this
+                console.log(vm.$refs.menuTree.getCheckedKeys());
+                console.log(vm.menuType)
+                let params = {
+                    type:vm.menuType,
+                    ids: vm.$refs.menuTree.getCheckedKeys()
+                };
+                vm.listLoading = true;
+                vm.configureLoading = true
+                post(instanceUrl.relationMenu,params).then((res) => {
+                    vm.listLoading = false;
+                    vm.configureLoading = false;
+                    console.log("成功回调："+JSON.stringify(res))
+                    if("success" === res.status) {
+                        this.configureVisible=false
+                    }else{
+                        console.log(res.msg)
+                    }
+                }).catch((error) => {
+                    vm.listLoading = false;
+                    console.log("报错了")
+                })
+			},
 			//新增
 			addSubmit: function () {
                 let vm = this
@@ -309,7 +454,7 @@
 							//NProgress.start();
 							let params = Object.assign({}, vm.addForm);
                             vm.addLoading = true;
-                            post(instanceUrl.addMenu,params).then((res) => {
+                            post(instanceUrl.addGroup,params).then((res) => {
                                 vm.addLoading = false;
                                 //NProgress.done();
                                 vm.$refs['addForm'].resetFields();
@@ -334,18 +479,9 @@
 					}
 				});
 			},
-            addGroup(data){
-                console.log(JSON.stringify(data))
-				console.log("id:"+data.id)
-			},
-            removeGroup(node,data){
-                console.log(node)
-                console.log(JSON.stringify(data))
-			},
 		},
         mounted() {
             this.serch();
-            this.getDictType()
         }
 	}
 
