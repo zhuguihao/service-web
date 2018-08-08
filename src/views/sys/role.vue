@@ -14,7 +14,7 @@
 						<el-button type="primary" v-on:click="filterSerch">查询</el-button>
 					</el-form-item>
 					<!--<el-form-item v-show="groupList.length===0">-->
-						<!--<el-button type="primary" @click="handleAdd">新增</el-button>-->
+					<!--<el-button type="primary" @click="handleAdd">新增</el-button>-->
 					<!--</el-form-item>-->
 				</el-form>
 			</el-col>
@@ -59,10 +59,10 @@
 					<el-input v-model="editForm.groupName" auto-complete="off" />
 				</el-form-item>
 				<!--<el-form-item label="是否禁用">-->
-					<!--<el-radio-group v-model="editForm.isDel">-->
-						<!--<el-radio class="radio" label="N">否</el-radio>-->
-						<!--<el-radio class="radio" label="Y">是</el-radio>-->
-					<!--</el-radio-group>-->
+				<!--<el-radio-group v-model="editForm.isDel">-->
+				<!--<el-radio class="radio" label="N">否</el-radio>-->
+				<!--<el-radio class="radio" label="Y">是</el-radio>-->
+				<!--</el-radio-group>-->
 				<!--</el-form-item>-->
 			</el-form>
 			<div slot="footer" class="dialog-footer">
@@ -80,12 +80,12 @@
 				<el-form-item label="角色名称" prop="groupName">
 					<el-input v-model="addForm.groupName" auto-complete="off" />
 				</el-form-item>
-                <!--<el-form-item label="是否禁用">-->
-                    <!--<el-radio-group v-model="addForm.isDel">-->
-                        <!--<el-radio class="radio" label="N">否</el-radio>-->
-                        <!--<el-radio class="radio" label="Y">是</el-radio>-->
-                    <!--</el-radio-group>-->
-                <!--</el-form-item>-->
+				<!--<el-form-item label="是否禁用">-->
+				<!--<el-radio-group v-model="addForm.isDel">-->
+				<!--<el-radio class="radio" label="N">否</el-radio>-->
+				<!--<el-radio class="radio" label="Y">是</el-radio>-->
+				<!--</el-radio-group>-->
+				<!--</el-form-item>-->
 			</el-form>
 			<div slot="footer" class="dialog-footer">
 				<el-button @click.native="addFormVisible = false">取消</el-button>
@@ -113,7 +113,7 @@
 					 :props="menuProps"
 					 default-expand-all
 					 show-checkbox
-			         ref="menuTree">
+					 ref="menuTree">
 			  <span class="custom-tree-node" slot-scope="{ node, data }">
 				<span>{{ data.menuName }}</span>
 			  </span>
@@ -127,110 +127,110 @@
 </template>
 
 <script>
-	import post from '../../api/axiosApi'
-	import instanceUrl from '../../api/interfaceName'
-	import utils from '../../api/variable'
+    import post from '../../api/axiosApi'
+    import instanceUrl from '../../api/interfaceName'
+    import utils from '../../api/variable'
 
-	export default {
-		data() {
-			return {
+    export default {
+        data() {
+            return {
                 /**
-				 * 过滤条件
+                 * 过滤条件
                  */
-				filters: {
+                filters: {
                     groupCode: '',
                     groupName: '',
 
-				},
+                },
                 group: [],
-				/**
-				 * 分页之后的数据展示
-				 */
+                /**
+                 * 分页之后的数据展示
+                 */
                 groupList:[],
-				total: 0,
-				page: 1,
-				size:utils.size,
-				listLoading: false,
-				editFormVisible: false,//编辑界面是否显示
-				editLoading: false,
-				editFormRules: {
+                total: 0,
+                page: 1,
+                size:utils.size,
+                listLoading: false,
+                editFormVisible: false,//编辑界面是否显示
+                editLoading: false,
+                editFormRules: {
                     groupCode: [
                         { required: true, message: '请输入角色代码', trigger: 'blur' }
                     ],
                     groupName: [
                         { required: true, message: '请输入角色名称', trigger: 'blur' }
                     ]
-				},
-				//编辑界面数据
-				editForm: {
-					id: '',
+                },
+                //编辑界面数据
+                editForm: {
+                    id: '',
                     menuName: '',
                     type: '',
                     menuUrl: '',
                     menuParams: '',
                     isDel: 'N',
-				},
-				addFormVisible: false,//新增界面是否显示
-				addLoading: false,
-				addFormRules: {
+                },
+                addFormVisible: false,//新增界面是否显示
+                addLoading: false,
+                addFormRules: {
                     groupCode: [
                         { required: true, message: '请输入角色代码', trigger: 'blur' }
                     ],
                     groupName: [
                         { required: true, message: '请输入角色名称', trigger: 'blur' }
                     ]
-				},
-				//新增界面数据
-				addForm: {
+                },
+                //新增界面数据
+                addForm: {
                     id: '',
                     parentId: '',
                     groupCode: '',
                     groupName: '',
                     isDel: 'N',
-				},
-				//菜单类型
+                },
+                //菜单类型
                 typeList:[],
-				//菜单转换值
+                //菜单转换值
                 props:{
                     label: 'groupName'
                 },
                 menuProps:{
                     label: 'menuName'
-				},
-				//菜单类型集合
+                },
+                //菜单类型集合
                 typeSelList:[],
-				//角色菜单开关
+                //角色菜单开关
                 configureVisible:false,
-				//角色菜单配置提交loading
+                //角色菜单配置提交loading
                 configureLoading:false,
-				//角色菜单列表
+                //角色菜单列表
                 groupMenu:{},
-				//菜单类型绑定
-				menuType:"",
-				//菜单列表
+                //菜单类型绑定
+                menuType:"",
+                //菜单列表
                 menu:[],
-				//选择的菜单列表
+                //选择的菜单列表
                 menuTreeCheckedKeys: [],
-				//选中的角色ID
-				roleId: "",
-			}
-		},
-		methods: {
-		    /**
-			 * 过滤查询条件
-			 */
+                //选中的角色ID
+                roleId: "",
+            }
+        },
+        methods: {
+            /**
+             * 过滤查询条件
+             */
             filterSerch() {
                 this.$refs.greoupTree.filter(this.filters);
             },
-		    /**
-			 * 过滤树形结构数据
-			 */
+            /**
+             * 过滤树形结构数据
+             */
             filterNode(value, data) {
                 if (!value) return true;
                 return data.groupCode.indexOf(value.groupCode) !== -1 && data.groupName.indexOf(value.groupName) !== -1;
             },
-		    //查询菜单数据
-		    getMenuList(){
+            //查询菜单数据
+            getMenuList(){
                 let vm = this
                 let params = {
                     roleId: vm.roleId,
@@ -242,7 +242,7 @@
                     if("success" === res.status){
                         vm.menu = res.data.menuList;
                         let checked = Object.assign([],res.data.checked);
-						vm.setMenuTreeCheckedKeys(checked)
+                        vm.setMenuTreeCheckedKeys(checked)
                         // vm.menuList = res.data.filter((u, index) => index < vm.size * vm.page && index >= vm.size * (vm.page - 1));
                     }else{
                         console.log(res.msg)
@@ -251,16 +251,18 @@
                     vm.listLoading = false;
                     console.log("报错了")
                 })
-			},
-			/**
-			 * 设置已选中的菜单栏
-			 */
+            },
+            /**
+             * 设置已选中的菜单栏
+             */
             setMenuTreeCheckedKeys(data){
                 this.$refs.menuTree.setCheckedKeys(data);
-			},
+            },
             selectChange(){
-				this.getMenuList()
-			},
+
+                this.menu = []
+                this.getMenuList()
+            },
             handleNodeClick(data) {
                 console.log(data);
             },
@@ -268,15 +270,15 @@
              * 是否禁用转换
              */
             formatDel: function (row, column) {
-				return row.isDel == 'N' ? '否' : row.isDel == 'Y' ? '是' : '未知';
-			},
-			handleCurrentChange(val) {
+                return row.isDel == 'N' ? '否' : row.isDel == 'Y' ? '是' : '未知';
+            },
+            handleCurrentChange(val) {
                 let vm = this
                 vm.page = val;
                 vm.groupList =  vm.group.filter((u, index) => index < vm.size * vm.page && index >= vm.size * (vm.page - 1));
-			},
+            },
             /**
-			 * 获取菜单类型数据字典
+             * 获取菜单类型数据字典
              */
             getDictType(){
                 let vm = this
@@ -289,42 +291,42 @@
                     console.log("成功回调："+JSON.stringify(res))
                     if("success" === res.status) {
                         vm.typeList = Object.assign([],res.data)
-						vm.menuType = res.data.length>0?res.data[0].code:""
-						vm.getMenuList()
+                        vm.menuType = res.data.length>0?res.data[0].code:""
+                        vm.getMenuList()
                     }else{
                         console.log(res.msg)
-					}
+                    }
                 }).catch((error) => {
                     vm.listLoading = false;
                     console.log("报错了")
                 })
-			},
-			//获取用户列表
-			serch() {
-			    let vm = this
-				let params = {
-					// page: vm.page,
-					// size: vm.size,
+            },
+            //获取用户列表
+            serch() {
+                let vm = this
+                let params = {
+                    // page: vm.page,
+                    // size: vm.size,
                     groupCode: vm.filters.groupCode,
                     groupName: vm.filters.groupName
-				};
+                };
                 vm.listLoading = true;
                 post(instanceUrl.getGroup,params).then((res) => {
                     vm.listLoading = false;
                     console.log("成功回调："+JSON.stringify(res))
-					if("success" === res.status){
+                    if("success" === res.status){
                         vm.total = res.data.length;
                         vm.group = res.data;
                         vm.groupList = res.data.filter((u, index) => index < vm.size * vm.page && index >= vm.size * (vm.page - 1));
-					}else{
+                    }else{
                         console.log(res.msg)
-					}
+                    }
                 }).catch((error) => {
                     vm.listLoading = false;
                     console.log("报错了")
                 })
-			},
-			//显示配置角色菜单
+            },
+            //显示配置角色菜单
             configureGroup(data){
                 let vm = this
                 vm.typeList = []
@@ -335,13 +337,13 @@
                 vm.roleId = data.id
 
                 vm.getDictType()
-			},
-			//显示编辑界面
-			handleEdit: function (data) {
-				this.editFormVisible = true;
-				this.editLoading = false;
-				this.editForm = Object.assign({}, data);
-			},
+            },
+            //显示编辑界面
+            handleEdit: function (data) {
+                this.editFormVisible = true;
+                this.editLoading = false;
+                this.editForm = Object.assign({}, data);
+            },
             //显示子节点新增界面
             handleAddChildren: function (row) {
                 this.addFormVisible = true;
@@ -354,14 +356,14 @@
                 };
                 console.log(JSON.stringify(this.addForm))
             },
-			//删除子节点
+            //删除子节点
             removeGroup(data){
                 let vm = this
                 vm.$confirm('确认删除该节点吗吗？', '提示', {}).then(() => {
                     let params = {
                         id:data.id,
                         isDel:"Y"
-					};
+                    };
                     vm.editLoading = true;
                     post(instanceUrl.editGroup,params).then((res) => {
                         vm.editLoading = false;
@@ -381,17 +383,17 @@
                         vm.listLoading = false;
                         console.log("报错了")
                     });
-				});
-			},
-			//编辑
-			editSubmit: function () {
-			    let vm = this
+                });
+            },
+            //编辑
+            editSubmit: function () {
+                let vm = this
                 vm.$refs.editForm.validate((valid) => {
-					if (valid) {
-						this.$confirm('确认提交吗？', '提示', {}).then(() => {
+                    if (valid) {
+                        this.$confirm('确认提交吗？', '提示', {}).then(() => {
 
-							//NProgress.start();
-							let params = Object.assign({}, this.editForm);
+                            //NProgress.start();
+                            let params = Object.assign({}, this.editForm);
                             vm.editLoading = true;
                             post(instanceUrl.editGroup,params).then((res) => {
                                 vm.editLoading = false;
@@ -406,21 +408,21 @@
                                         type: 'success'
                                     });
                                     vm.serch();
-								}else{
+                                }else{
                                     this.$message({
                                         message: '修改异常',
                                         type: 'error'
                                     });
-								}
+                                }
                             }).catch((error) => {
                                 vm.listLoading = false;
                                 console.log("报错了")
                             })
-						});
-					}
-				});
-			},
-			//配置角色菜单
+                        });
+                    }
+                });
+            },
+            //配置角色菜单
             configureSubmit(){
                 let vm = this
                 console.log(vm.$refs.menuTree.getCheckedKeys());
@@ -444,15 +446,15 @@
                     vm.listLoading = false;
                     console.log("报错了")
                 })
-			},
-			//新增
-			addSubmit: function () {
+            },
+            //新增
+            addSubmit: function () {
                 let vm = this
                 vm.$refs.addForm.validate((valid) => {
-					if (valid) {
+                    if (valid) {
                         vm.$confirm('确认提交吗？', '提示', {}).then(() => {
-							//NProgress.start();
-							let params = Object.assign({}, vm.addForm);
+                            //NProgress.start();
+                            let params = Object.assign({}, vm.addForm);
                             vm.addLoading = true;
                             post(instanceUrl.addGroup,params).then((res) => {
                                 vm.addLoading = false;
@@ -475,15 +477,15 @@
                             }).catch((error) => {
                                 console.log("报错了")
                             })
-						});
-					}
-				});
-			},
-		},
+                        });
+                    }
+                });
+            },
+        },
         mounted() {
             this.serch();
         }
-	}
+    }
 
 </script>
 

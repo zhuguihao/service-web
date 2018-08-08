@@ -1,5 +1,6 @@
 import axios from 'axios';
 import utils from './variable'
+import util from '@/api/util'
 
 
 // 使用由库提供的配置的默认值来创建实例
@@ -11,11 +12,13 @@ let instance = axios.create();
 instance.defaults.timeout = utils.instanceTimeout;
 //设置基本接口地址
 instance.defaults.baseURL = utils.instanceBaseUrl;
+let token = util.getToken()
 instance.defaults.headers = {
-    token: utils.token
+    token: token
 }
 
 const post = function (url, params) {
+    console.log("token:"+token)
     console.log("axiosUrl:"+url)
     console.log("axiosParams:"+JSON.stringify(params))
     return new Promise((resolve, reject) => {

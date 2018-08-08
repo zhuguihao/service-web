@@ -39,10 +39,10 @@
 			<el-table-column prop="isDel" label="是否禁用" width="120" sortable
 							 :formatter="formatDel">
 			</el-table-column>
-			<el-table-column label="操作" width="120">
+			<el-table-column label="操作" width="200">
 				<template slot-scope="scope">
 					<el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-					<!--<el-button size="small" @click="handleAddChildren(scope.$index, scope.row)">新增子节点</el-button>-->
+					<el-button size="small" v-show="scope.row.isTitle==='Y'" @click="handleAddChildren(scope.row)" :disabled="scope.row.isDel==='Y'">新增子节点</el-button>
 				</template>
 			</el-table-column>
 		</el-table>
@@ -75,12 +75,6 @@
 				<el-form-item label="菜单参数" prop="menuParams">
 					<!--<el-input v-model="editForm.remarks" auto-complete="off"></el-input>-->
 					<el-input type="textarea" v-model="editForm.menuParams" />
-				</el-form-item>
-				<el-form-item label="是否标题" prop="isTitle">
-					<el-radio-group v-model="editForm.isTitle">
-						<el-radio class="radio" label="N">否</el-radio>
-						<el-radio class="radio" label="Y">是</el-radio>
-					</el-radio-group>
 				</el-form-item>
 				<el-form-item label="是否禁用">
 					<el-radio-group v-model="editForm.isDel">
@@ -118,7 +112,7 @@
                 <el-form-item label="菜单参数" prop="menuParams">
                     <el-input type="textarea" v-model="addForm.menuParams" />
                 </el-form-item>
-				<el-form-item label="是否标题" prop="isTitle">
+				<el-form-item label="是否标题" prop="isTitle" v-show="addForm.type=='web'">
 					<el-radio-group v-model="addForm.isTitle">
 						<el-radio class="radio" label="N">否</el-radio>
 						<el-radio class="radio" label="Y">是</el-radio>
@@ -136,6 +130,7 @@
 				<el-button type="primary" @click.native="addSubmit" :loading="addLoading">提交</el-button>
 			</div>
 		</el-dialog>
+
 	</section>
 </template>
 
@@ -171,10 +166,7 @@
                     ],
                     type: [
 						{ required: true, message: '请选择菜单类型', trigger: 'blur' }
-					],
-                    menuUrl: [
-                        { required: true, message: '请输入菜单地址', trigger: 'blur' }
-                    ]
+					]
 				},
 				//编辑界面数据
 				editForm: {
@@ -195,9 +187,6 @@
                     ],
                     type: [
                         { required: true, message: '请选择菜单类型', trigger: 'blur' }
-                    ],
-                    menuUrl: [
-                        { required: true, message: '请输入菜单地址', trigger: 'blur' }
                     ]
 				},
 				//新增界面数据
@@ -223,6 +212,34 @@
 			}
 		},
 		methods: {
+		    //当前栏是否为标题
+            isTitleShow(id){
+				let vm = this
+                let data = vm.menuList.filter((item)=>{
+					if(item.parentId===id){
+						return item.isTitle==="Y"
+					}
+				})
+				console.log(JSON.stringify(data))
+				return data.length === 0
+			},
+            //显示子节点新增界面
+            handleAddChildren: function (row) {
+                let vm = this
+				console.log(row.id)
+                vm.addFormVisible = true;
+                vm.addForm = Object.assign({},{
+                    id: '',
+                    menuName: '',
+                    type: vm.typeSelList[0]?vm.typeSelList[0].code:'',
+                    menuUrl: '',
+                    menuParams: '',
+                    isDel: 'N',
+                    isTitle: 'N',
+                    parentId:row.id,
+                });
+                console.log(JSON.stringify(vm.addForm))
+            },
 		    /**
 			 * 转换菜单类型
 			 */
@@ -311,16 +328,16 @@
 			handleAdd: function () {
                 let vm = this
                 vm.addFormVisible = true;
-                vm.addForm = {
+                vm.addForm = Object.assign({},{
                     id: '',
                     menuName: '',
-                    type: '',
+                    type:  vm.typeSelList[0]?vm.typeSelList[0].code:'',
                     menuUrl: '',
                     menuParams: '',
                     isDel: 'N',
                     isTitle: 'N',
                     parentId:'',
-				};
+                });
 			},
 			//编辑
 			editSubmit: function () {

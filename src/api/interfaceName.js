@@ -55,5 +55,9 @@ let instanceUrl = {
      * 角色关联菜单表
      */
     relationMenu: "/menu/relationMenu",
+    /**
+     * 登录接口
+     */
+    login: "/login/login",
 }
 export default instanceUrl;

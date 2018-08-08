@@ -9,94 +9,145 @@
     </el-form-item>
     <el-checkbox v-model="checked" checked class="remember">记住密码</el-checkbox>
     <el-form-item style="width:100%;">
-      <el-button type="primary" style="width:100%;" @click.native.prevent="handleSubmit2" :loading="logining">登录</el-button>
+      <el-button type="primary" style="width:100%;" @click.native.prevent="login" :loading="logining">登录</el-button>
       <!--<el-button @click.native.prevent="handleReset2">重置</el-button>-->
     </el-form-item>
   </el-form>
 </template>
 
 <script>
-  import { requestLogin } from '../api/api';
-  import MenuUtils from '@/utils/MenuUtils'
-  //import NProgress from 'nprogress'
+    import MenuUtils from '@/utils/MenuUtils'
+    import post from '@/api/axiosApi'
+    import instanceUrl from '@/api/interfaceName'
+    import util from '@/api/util'
+    //import NProgress from 'nprogress'
 
-  var routers = []
-  export default {
-    data() {
-      return {
-        logining: false,
-        ruleForm2: {
-          account: 'admin',
-          checkPass: '123456'
+    var routers = []
+    export default {
+        data() {
+            return {
+                logining: false,
+                ruleForm2: {
+                    account: '15057582615',
+                    checkPass: 'qwer'
+                },
+                rules2: {
+                    account: [
+                        { required: true, message: '请输入账号', trigger: 'blur' },
+                        //{ validator: validaePass }
+                    ],
+                    checkPass: [
+                        { required: true, message: '请输入密码', trigger: 'blur' },
+                        //{ validator: validaePass2 }
+                    ]
+                },
+                checked: true,
+                // 获取的菜单类型
+                type:'web',
+            };
         },
-        rules2: {
-          account: [
-            { required: true, message: '请输入账号', trigger: 'blur' },
-            //{ validator: validaePass }
-          ],
-          checkPass: [
-            { required: true, message: '请输入密码', trigger: 'blur' },
-            //{ validator: validaePass2 }
-          ]
+        mounted(){
+            let vm = this
+            return
+            let old = [{
+                path: '/',
+                menuParams: 'Home',
+                name: '系统配置',
+                iconCls: 'el-icon-setting',
+                children: [
+                    { path: '/dict', menuParams: 'sys/dict', name: '字典表' },
+                    { path: '/menu', menuParams: 'sys/menu', name: '菜单表' },
+                    { path: '/role', menuParams: 'sys/role', name: '角色表' },
+                    { path: '/user', menuParams: 'sys/user', name: '用户表' },
+                ]
+            }]
+            window.sessionStorage.setItem('router',JSON.stringify(old))
+            MenuUtils(routers,old)
+            console.log(JSON.stringify(routers))
+            vm.$router.push({ path: '/dict'});
         },
-        checked: true
-      };
-    },
-      mounted(){
-        let vm = this
-          let old = [{
-              path: '/',
-              component: 'Home',
-              name: '系统配置',
-              iconCls: 'el-icon-setting',
-              children: [
-                  { path: '/dict', component: 'sys/dict', name: '字典表' },
-                  { path: '/menu', component: 'sys/menu', name: '菜单表' },
-                  { path: '/role', component: 'sys/role', name: '角色表' },
-                  { path: '/user', component: 'sys/user', name: '用户表' },
-              ]
-          }]
-          window.sessionStorage.setItem('router',JSON.stringify(old))
-          MenuUtils(routers,old)
-          console.log(JSON.stringify(routers))
-      },
-    methods: {
-      handleReset2() {
-        this.$refs.ruleForm2.resetFields();
-      },
-      handleSubmit2(ev) {
+        methods: {
+            //登录
+            login() {
+                let vm = this
+                this.$refs.ruleForm2.validate((valid) => {
 
-        var _this = this;
-        this.$refs.ruleForm2.validate((valid) => {
-
-          if (valid) {
-            //_this.$router.replace('/table');
-            this.logining = true;
-            //NProgress.start();
-            var loginParams = { username: this.ruleForm2.account, password: this.ruleForm2.checkPass };
-            requestLogin(loginParams).then(data => {
-              this.logining = false;
-              //NProgress.done();
-              let { msg, code, user } = data;
-              if (code !== 200) {
-                this.$message({
-                  message: msg,
-                  type: 'error'
+                    if (valid) {
+                        let params = {
+                            account: vm.ruleForm2.account,
+                            pwd: vm.ruleForm2.checkPass,
+                            type: vm.type,
+                        };
+                        vm.logining = true;
+                        post(instanceUrl.login,params).then((res) => {
+                            vm.logining = false;
+                            if("success" === res.status){
+                                let data = Object.assign({},res.data)
+                                let token = data.token
+                                let userInfo = Object.assign({},data.userInfo)
+                                let menuList = Object.assign([],data.menuList)
+                                /**
+                                 * 1.设置token
+                                 * 2.设置用户信息
+                                 * 3.设置当前用户菜单信息
+                                 * 4.添加菜单信息
+                                 * 5.跳转到主页
+                                 */
+                                util.setToken(token)
+                                util.setUserInfo(userInfo)
+                                MenuUtils(routers,menuList)
+                                util.setRoutes(routers)
+                                vm.$router.addRoutes(routers)
+                                vm.$router.push({ path: menuList.length==0? '':menuList[0].children?menuList[0].children[0].menuUrl:''});
+                                return
+                            }
+                            this.$message.error(res.msg);
+                        }).catch((error) => {
+                            vm.logining = false;
+                            this.$message.error('网络异常，请稍后重试');
+                        })
+                    } else {
+                        console.log('error submit!!');
+                        return false;
+                    }
                 });
-              } else {
-                  this.$router.addRoutes(routers)
-                sessionStorage.setItem('user', JSON.stringify(user));
-                this.$router.push({ path: '/dict' });
-              }
-            });
-          } else {
-            console.log('error submit!!');
-            return false;
-          }
-        });
-      }
+            },
+            handleReset2() {
+                this.$refs.ruleForm2.resetFields();
+            },
+            handleSubmit2(ev) {
+
+                var _this = this;
+                this.$refs.ruleForm2.validate((valid) => {
+
+                    if (valid) {
+                        //_this.$router.replace('/table');
+                        this.logining = true;
+                        //NProgress.start();
+                        var loginParams = { username: this.ruleForm2.account, password: this.ruleForm2.checkPass };
+                        requestLogin(loginParams).then(data => {
+                            this.logining = false;
+                            //NProgress.done();
+                            let { msg, code, user } = data;
+                            if (code !== 200) {
+                                this.$message({
+                                    message: msg,
+                                    type: 'error'
+                                });
+                            } else {
+                                this.$router.addRoutes(routers)
+                                sessionStorage.setItem('user', JSON.stringify(user));
+                                this.$router.push({ path: '/dict' });
+                            }
+                        });
+                    } else {
+                        console.log('error submit!!');
+                        return false;
+                    }
+                });
+            }
+        }
     }
-  }
 
 </script>
 

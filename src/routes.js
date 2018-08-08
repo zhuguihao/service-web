@@ -18,13 +18,13 @@ let routes = [
     {
         path: '/login',
         component: Login,
-        name: '',
+        menuName: '',
         hidden: true
     },
     {
         path: '/404',
         component: NotFound,
-        name: '',
+        menuName: '',
         hidden: true
     },
     // { path: '/main', component: Main },
