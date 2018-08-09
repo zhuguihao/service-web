@@ -5,6 +5,9 @@ export default {
     getToken(){
         return window.sessionStorage.getItem('token')
     },
+    removeToken(){
+        window.sessionStorage.removeItem('token');
+    },
     setUserInfo(userInfo) {
         window.sessionStorage.setItem('userInfo',JSON.stringify(userInfo))
     },
@@ -12,12 +15,15 @@ export default {
         return JSON.parse(window.sessionStorage.getItem('userInfo'))
     },
     removeUserInfo(){
-        sessionStorage.removeItem('userInfo');
+        window.sessionStorage.removeItem('userInfo');
     },
     setRoutes(router) {
         window.sessionStorage.setItem('router',JSON.stringify(router))
     },
     getRoutes(){
         return JSON.parse(window.sessionStorage.getItem('router'))
-    }
+    },
+    removeRoutes(){
+        window.sessionStorage.removeItem('router');
+    },
 };

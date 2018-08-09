@@ -12,16 +12,17 @@ let instance = axios.create();
 instance.defaults.timeout = utils.instanceTimeout;
 //设置基本接口地址
 instance.defaults.baseURL = utils.instanceBaseUrl;
-let token = util.getToken()
-instance.defaults.headers = {
-    token: token
-}
+
 
 const post = function (url, params) {
-    console.log("token:"+token)
-    console.log("axiosUrl:"+url)
-    console.log("axiosParams:"+JSON.stringify(params))
     return new Promise((resolve, reject) => {
+        let token = util.getToken()
+        instance.defaults.headers = {
+            token: token
+        }
+        console.log("token:"+token)
+        console.log("axiosUrl:"+url)
+        console.log("axiosParams:"+JSON.stringify(params))
         instance.post(url,params).then(function (response) {
             if (200 === response.status){
                 console.log("axiosData:"+JSON.stringify(response.data))

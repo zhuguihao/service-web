@@ -57,35 +57,35 @@
 </template>
 
 <script>
-	import post from '../../api/axiosApi'
-	import instanceUrl from '../../api/interfaceName'
-	import utils from '../../api/variable'
+    import post from '../../api/axiosApi'
+    import instanceUrl from '../../api/interfaceName'
+    import utils from '../../api/variable'
 
-	export default {
-		data() {
-			return {
+    export default {
+        data() {
+            return {
                 /**
-				 * 过滤条件
+                 * 过滤条件
                  */
-				filters: {
+                filters: {
                     nickName: '',
                     account: ''
-				},
-				user: [],
-				/**
-				 * 分页之后的数据展示
-				 */
-				userList:[],
-				total: 0,
-				page: 1,
-				size:utils.size,
-				listLoading: false,
-			}
-		},
+                },
+                user: [],
+                /**
+                 * 分页之后的数据展示
+                 */
+                userList:[],
+                total: 0,
+                page: 1,
+                size:utils.size,
+                listLoading: false,
+            }
+        },
         mounted() {
             this.serch();
         },
-		methods: {
+        methods: {
             /**
              * 男女转换
              */
@@ -96,39 +96,45 @@
              * 是否禁用转换
              */
             formatDel: function (row, column) {
-				return row.isDel == 'N' ? '否' : row.isDel == 'Y' ? '是' : '未知';
-			},
+                return row.isDel == 'N' ? '否' : row.isDel == 'Y' ? '是' : '未知';
+            },
             /**
-			 * 分页显示数据
+             * 分页显示数据
              * @param val
              */
-			handleCurrentChange(val) {
+            handleCurrentChange(val) {
                 let vm = this
                 vm.page = val;
                 vm.userList =  vm.user.filter((u, index) => index < vm.size * vm.page && index >= vm.size * (vm.page - 1));
-			},
-			//获取用户列表
-			serch() {
-			    let vm = this
-				let params = {
+            },
+            //获取用户列表
+            serch() {
+                let vm = this
+                let params = {
                     nickName: vm.filters.nickName,
                     account: vm.filters.account,
-				};
+                };
                 vm.listLoading = true;
                 post(instanceUrl.getUser,params).then((res) => {
                     vm.listLoading = false;
-                    console.log("成功回调："+JSON.stringify(res))
-                    vm.total = res.data.length;
-                    vm.user = res.data;
-                    vm.userList = res.data.filter((u, index) => index < vm.size * vm.page && index >= vm.size * (vm.page - 1));
+                    if("success" == res.status){
+                        vm.total = res.data.length;
+                        vm.user = res.data;
+                        vm.userList = res.data.filter((u, index) => index < vm.size * vm.page && index >= vm.size * (vm.page - 1));
+                        return
+                    }
+                    vm.$message({
+                        message: msg,
+                        type: 'error'
+                    });
                 }).catch((error) => {
                     vm.listLoading = false;
                     console.log("报错了")
                 })
-			},
-			//禁用客户
-			handleEdit: function (index, row) {
-			    let vm = this
+            },
+            //禁用客户
+            handleEdit: function (index, row) {
+                let vm = this
                 vm.$confirm('确认'+(row.isDel==='N'?'禁用':'启用')+'该用户吗？', '提示', {}).then(() => {
                     row.isDel = row.isDel==="N"?"Y":"N"
                     let params = Object.assign({},row)
@@ -153,9 +159,9 @@
                         console.log("报错了")
                     })
                 });
-			},
-		}
-	}
+            },
+        }
+    }
 
 </script>
 

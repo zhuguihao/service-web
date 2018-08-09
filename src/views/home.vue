@@ -22,23 +22,43 @@
 		</el-col>
 		<el-col :span="24" class="main">
 			<aside :class="collapsed?'menu-collapsed':'menu-expanded'">
-				<!--导航菜单-->
-				<el-menu :default-active="$route.path" class="el-menu-vertical-demo" @open="handleopen" @close="handleclose" @select="handleselect"
-					 unique-opened router v-show="!collapsed">
-					<!--<template v-for="(item,index) in $router.options.routes" v-if="!item.hidden">-->
-					<template v-for="(item,index) in menus" v-if="!item.hidden">
-						<el-submenu :index="index+''" v-if="!item.leaf">
-							<template slot="title">
-								<i :class="item.menuIcon"></i>
-								{{item.menuName}}
-							</template>
-							<template v-show="item.children">
-								<el-menu-item  v-for="(child,index) in item.children" :index="child.path" :key="child.path" v-if="!child.hidden">{{child.menuName}}</el-menu-item>
-							</template>
-						</el-submenu>
-						<el-menu-item v-if="item.leaf&&item.children.length>0" :index="item.children[0].path"><i :class="item.menuIcon"></i>{{item.children[0].menuName}}</el-menu-item>
-					</template>
+				<el-menu
+						:default-active="$route.path"
+						class="el-menu-vertical-demo"
+						@open="handleopen"
+						@close="handleclose"
+						@select="handleselect"
+						unique-opened
+						router
+						v-show="!collapsed"
+						text-color="#3C3F41"
+						active-text-color="#409EFF">
+					<nav-menu :navMenus="menus"></nav-menu>
 				</el-menu>
+				<!--导航菜单-->
+				<!--<el-menu-->
+						<!--:default-active="$route.path"-->
+						<!--class="el-menu-vertical-demo"-->
+						<!--@open="handleopen"-->
+						<!--@close="handleclose"-->
+						<!--@select="handleselect"-->
+						<!--unique-opened-->
+						<!--router-->
+						<!--v-show="!collapsed">-->
+					<!--&lt;!&ndash;<template v-for="(item,index) in $router.options.routes" v-if="!item.hidden">&ndash;&gt;-->
+					<!--<template v-for="(item,index) in menus" v-if="!item.hidden">-->
+						<!--<el-submenu :index="index+''" v-if="!item.leaf">-->
+							<!--<template slot="title">-->
+								<!--<i :class="item.menuIcon"></i>-->
+								<!--{{item.menuName}}-->
+							<!--</template>-->
+							<!--<template v-show="item.children">-->
+								<!--<el-menu-item  v-for="(child,index) in item.children" :index="child.path" :key="child.path" v-if="!child.hidden">{{child.menuName}}</el-menu-item>-->
+							<!--</template>-->
+						<!--</el-submenu>-->
+						<!--<el-menu-item v-if="item.leaf&&item.children.length>0" :index="item.children[0].path"><i :class="item.menuIcon"></i>{{item.children[0].menuName}}</el-menu-item>-->
+					<!--</template>-->
+				<!--</el-menu>-->
 				<!--导航菜单-折叠后-->
 				<!--<ul class="el-menu el-menu-vertical-demo collapsed" v-show="collapsed" ref="menuCollapsed">-->
 					<!--<li v-for="(item,index) in $router.options.routes" v-if="!item.hidden" class="el-submenu item">-->
@@ -109,22 +129,16 @@
                 this.sysUserName = user.nickName || '';
                 this.sysUserAvatar = user.avatarUrl || '';
             }
-
-            // console.log(JSON.stringify(vm.$router.options))
-            let newRouter = util.getRoutes()
+            let newRouter =  Object.assign([],util.getRoutes())
             let menus = []
             if (newRouter) {
-		        menus = Object.assign(menus,vm.$router.options.routes)
-				console.log(111111111111111111)
-				console.log(JSON.stringify(menus))
-                console.log(JSON.stringify(newRouter))
+		        menus = Object.assign([],vm.$router.options.routes)
                 newRouter.forEach((item)=> {
                     let menu = Object.assign({}, item)
                     menus.push(menu)
                 })
 			}
 			vm.menus = menus
-			console.log("menus:"+JSON.stringify(menus))
         },
 		methods: {
 			onSubmit() {
@@ -146,7 +160,12 @@
 				this.$confirm('确认退出吗?', '提示', {
 					//type: 'warning'
 				}).then(() => {
-					sessionStorage.removeItem('user');
+					util.removeToken()
+                    util.removeUserInfo()
+                    util.removeRoutes()
+                    console.log("token:"+util.getToken())
+                    console.log("getUserInfo:"+util.getUserInfo())
+                    console.log("getRoutes:"+util.getRoutes())
 					_this.$router.push('/login');
 				}).catch(() => {
 

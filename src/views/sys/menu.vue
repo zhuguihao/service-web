@@ -220,13 +220,11 @@
 						return item.isTitle==="Y"
 					}
 				})
-				console.log(JSON.stringify(data))
 				return data.length === 0
 			},
             //显示子节点新增界面
             handleAddChildren: function (row) {
                 let vm = this
-				console.log(row.id)
                 vm.addFormVisible = true;
                 vm.addForm = Object.assign({},{
                     id: '',
@@ -238,7 +236,6 @@
                     isTitle: 'N',
                     parentId:row.id,
                 });
-                console.log(JSON.stringify(vm.addForm))
             },
 		    /**
 			 * 转换菜单类型
@@ -275,7 +272,6 @@
                 vm.listLoading = true;
                 post(instanceUrl.getDictList,params).then((res) => {
                     vm.listLoading = false;
-                    console.log("成功回调："+JSON.stringify(res))
                     if("success" === res.status) {
                         vm.typeSelList = Object.assign([],res.data)
                         vm.typeList = Object.assign([],res.data)
@@ -283,9 +279,12 @@
                             code:"",
                             value:"全部"
                         })
-                    }else{
-                        console.log(res.msg)
-					}
+						return
+                    }
+                    vm.$message({
+                        message: msg,
+                        type: 'error'
+                    });
                 }).catch((error) => {
                     vm.listLoading = false;
                     console.log("报错了")
@@ -294,7 +293,6 @@
 			//获取菜单列表
 			serch() {
 			    let vm = this
-				console.log(JSON.stringify(vm.filters.type[0]))
 				let params = {
 					// page: vm.page,
 					// size: vm.size,
@@ -304,14 +302,16 @@
                 vm.listLoading = true;
                 post(instanceUrl.getMenu,params).then((res) => {
                     vm.listLoading = false;
-                    console.log("成功回调："+JSON.stringify(res))
 					if("success" === res.status){
                         vm.total = res.data.length;
                         vm.menu = res.data;
                         vm.menuList = res.data.filter((u, index) => index < vm.size * vm.page && index >= vm.size * (vm.page - 1));
-					}else{
-                        console.log(res.msg)
-					}
+                        return
+                    }
+                    vm.$message({
+                        message: msg,
+                        type: 'error'
+                    });
                 }).catch((error) => {
                     vm.listLoading = false;
                     console.log("报错了")

@@ -22,7 +22,7 @@
     import util from '@/api/util'
     //import NProgress from 'nprogress'
 
-    var routers = []
+    // var routers = []
     export default {
         data() {
             return {
@@ -47,24 +47,7 @@
             };
         },
         mounted(){
-            let vm = this
-            return
-            let old = [{
-                path: '/',
-                menuParams: 'Home',
-                name: '系统配置',
-                iconCls: 'el-icon-setting',
-                children: [
-                    { path: '/dict', menuParams: 'sys/dict', name: '字典表' },
-                    { path: '/menu', menuParams: 'sys/menu', name: '菜单表' },
-                    { path: '/role', menuParams: 'sys/role', name: '角色表' },
-                    { path: '/user', menuParams: 'sys/user', name: '用户表' },
-                ]
-            }]
-            window.sessionStorage.setItem('router',JSON.stringify(old))
-            MenuUtils(routers,old)
-            console.log(JSON.stringify(routers))
-            vm.$router.push({ path: '/dict'});
+
         },
         methods: {
             //登录
@@ -93,12 +76,14 @@
                                  * 4.添加菜单信息
                                  * 5.跳转到主页
                                  */
+
                                 util.setToken(token)
                                 util.setUserInfo(userInfo)
+                                let routers = []
                                 MenuUtils(routers,menuList)
                                 util.setRoutes(routers)
                                 vm.$router.addRoutes(routers)
-                                vm.$router.push({ path: menuList.length==0? '':menuList[0].children?menuList[0].children[0].menuUrl:''});
+                                vm.$router.push({ path: menuList.length>0? menuList[0].children?menuList[0].children[0].menuUrl:'/':'/'});
                                 return
                             }
                             this.$message.error(res.msg);

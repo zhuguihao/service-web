@@ -208,10 +208,16 @@
                 vm.listLoading = true;
                 post(instanceUrl.getDictUrl,params).then((res) => {
                     vm.listLoading = false;
-                    console.log("成功回调："+JSON.stringify(res))
-                    vm.total = res.data.length;
-                    vm.dict = res.data;
-                    vm.dictList = res.data.filter((u, index) => index < vm.size * vm.page && index >= vm.size * (vm.page - 1));
+                    if("success" == res.status){
+                        vm.total = res.data.length;
+                        vm.dict = res.data;
+                        vm.dictList = res.data.filter((u, index) => index < vm.size * vm.page && index >= vm.size * (vm.page - 1));
+                        return
+					}
+                    vm.$message({
+                        message: msg,
+                        type: 'error'
+                    });
                 }).catch((error) => {
                     vm.listLoading = false;
                     console.log("报错了")
@@ -254,7 +260,6 @@
                             vm.editLoading = true;
 							//NProgress.start();
 							let params = Object.assign({}, this.editForm);
-							console.log(JSON.stringify(params))
 							// para.birth = (!para.birth || para.birth == '') ? '' : util.formatDate.format(new Date(para.birth), 'yyyy-MM-dd');
                             post(instanceUrl.editDict,params).then((res) => {
                                 vm.editLoading = true;

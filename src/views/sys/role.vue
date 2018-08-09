@@ -40,7 +40,7 @@
 					<el-button class="btnEdit" type="text" size="mini" icon="el-icon-edit" @click.stop="() => handleEdit(data)">
 					编辑
 				  </el-button>
-					<el-button type="text" size="mini" icon="el-icon-menu" @click.stop="() => configureGroup(data)">
+					<el-button type="text" size="mini" icon="el-icon-menu" @click.stop="() => configureGroup(data)" v-show="util.getUserInfo().groupId != data.id">
 					配置角色菜单
 				  </el-button>
 				</span>
@@ -114,6 +114,8 @@
 					 default-expand-all
 					 show-checkbox
 					 ref="menuTree">
+
+				<!--check-strictly-->
 			  <span class="custom-tree-node" slot-scope="{ node, data }">
 				<span>{{ data.menuName }}</span>
 			  </span>
@@ -130,6 +132,7 @@
     import post from '../../api/axiosApi'
     import instanceUrl from '../../api/interfaceName'
     import utils from '../../api/variable'
+    import util from '@/api/util'
 
     export default {
         data() {
@@ -213,6 +216,10 @@
                 menuTreeCheckedKeys: [],
                 //选中的角色ID
                 roleId: "",
+				//查询不是头部的菜单
+                isTitle:'N',
+				//初始化缓存类
+                util:util,
             }
         },
         methods: {
@@ -234,7 +241,8 @@
                 let vm = this
                 let params = {
                     roleId: vm.roleId,
-                    type: vm.menuType
+                    type: vm.menuType,
+					isTitle:vm.isTitle,
                 };
                 vm.listLoading = true;
                 post(instanceUrl.getGroupMenu,params).then((res) => {
@@ -313,14 +321,16 @@
                 vm.listLoading = true;
                 post(instanceUrl.getGroup,params).then((res) => {
                     vm.listLoading = false;
-                    console.log("成功回调："+JSON.stringify(res))
                     if("success" === res.status){
                         vm.total = res.data.length;
                         vm.group = res.data;
                         vm.groupList = res.data.filter((u, index) => index < vm.size * vm.page && index >= vm.size * (vm.page - 1));
-                    }else{
-                        console.log(res.msg)
+                        return
                     }
+                    vm.$message({
+                        message: msg,
+                        type: 'error'
+                    });
                 }).catch((error) => {
                     vm.listLoading = false;
                     console.log("报错了")
@@ -333,7 +343,6 @@
                 vm.menu = []
                 vm.configureVisible=true
                 vm.groupMenu = Object.assign({}, data);
-                console.log(JSON.stringify(vm.groupMenu))
                 vm.roleId = data.id
 
                 vm.getDictType()
@@ -354,7 +363,6 @@
                     groupName: '',
                     isDel: 'N',
                 };
-                console.log(JSON.stringify(this.addForm))
             },
             //删除子节点
             removeGroup(data){
@@ -425,23 +433,33 @@
             //配置角色菜单
             configureSubmit(){
                 let vm = this
-                console.log(vm.$refs.menuTree.getCheckedKeys());
-                console.log(vm.menuType)
+                /**
+				 * 组装父节点及子节点
+                 */
+                let ids = Object.assign([],vm.$refs.menuTree.getCheckedKeys())
+				ids = ids.concat(vm.$refs.menuTree.getHalfCheckedKeys())
                 let params = {
                     type:vm.menuType,
-                    ids: vm.$refs.menuTree.getCheckedKeys()
+                    ids: ids,
+                    roleId:vm.roleId
                 };
                 vm.listLoading = true;
                 vm.configureLoading = true
                 post(instanceUrl.relationMenu,params).then((res) => {
                     vm.listLoading = false;
                     vm.configureLoading = false;
-                    console.log("成功回调："+JSON.stringify(res))
                     if("success" === res.status) {
-                        this.configureVisible=false
-                    }else{
-                        console.log(res.msg)
+                        vm.configureVisible=false
+                        vm.$message({
+                            message: res.msg,
+                            type: 'success'
+                        });
+                        return
                     }
+                    vm.$message({
+                        message: res.msg,
+                        type: 'error'
+                    });
                 }).catch((error) => {
                     vm.listLoading = false;
                     console.log("报错了")
@@ -468,12 +486,13 @@
                                         type: 'success'
                                     });
                                     vm.serch();
-                                }else{
-                                    vm.$message({
-                                        message: '新增异常',
-                                        type: 'error'
-                                    });
+                                    return
                                 }
+                                vm.$message({
+                                    message: '新增异常',
+                                    type: 'error'
+                                });
+
                             }).catch((error) => {
                                 console.log("报错了")
                             })
