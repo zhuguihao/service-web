@@ -124,7 +124,7 @@
                         return
                     }
                     vm.$message({
-                        message: msg,
+                        message: res.msg,
                         type: 'error'
                     });
                 }).catch((error) => {

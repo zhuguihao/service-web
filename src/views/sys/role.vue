@@ -40,8 +40,12 @@
 					<el-button class="btnEdit" type="text" size="mini" icon="el-icon-edit" @click.stop="() => handleEdit(data)">
 					编辑
 				  </el-button>
-					<el-button type="text" size="mini" icon="el-icon-menu" @click.stop="() => configureGroup(data)" v-show="util.getUserInfo().groupId != data.id">
+					<!--v-show="util.getUserInfo().groupId != data.id"-->
+					<el-button type="text" size="mini" icon="el-icon-menu" @click.stop="() => configureGroup(data)" >
 					配置角色菜单
+				  </el-button>
+					<el-button type="text" size="mini" icon="el-icon-menu" @click.stop="() => configurePeople(data)" >
+					配置角色人员
 				  </el-button>
 				</span>
 			  </span>
@@ -116,13 +120,44 @@
 					 ref="menuTree">
 
 				<!--check-strictly-->
-			  <span class="custom-tree-node" slot-scope="{ node, data }">
+				<span class="custom-tree-node" slot-scope="{ node, data }">
 				<span>{{ data.menuName }}</span>
 			  </span>
 			</el-tree>
 			<div slot="footer" class="dialog-footer">
 				<el-button @click.native="configureVisible = false">取消</el-button>
 				<el-button type="primary" @click.native="configureSubmit" :loading="configureLoading">提交</el-button>
+			</div>
+		</el-dialog>
+
+		<!--配置角色菜单界面-->
+		<el-dialog title="配置角色人员" :visible.sync="configurePeoVisible":close-on-click-modal="false">
+			<el-table
+					:data="userList"
+					highlight-current-row
+					v-loading="userListLoading"
+					ref="userTable"
+					tooltip-effect="dark"
+					@selection-change="handleSelectionChange"
+					style="width: 100%;height:100%;">
+				<el-table-column
+						type="selection"
+						width="55"></el-table-column>
+				<el-table-column prop="nickName" label="昵称" width="100" sortable>
+				</el-table-column>
+				<el-table-column prop="account" label="账号" width="150" sortable>
+				</el-table-column>
+				<el-table-column prop="phone" label="手机号" min-width="120" sortable>
+				</el-table-column>
+			</el-table>
+			<!--工具条-->
+			<el-col :span="24" class="toolbar">
+				<el-pagination layout="prev, pager, next" @current-change="handleUserCurrentChange" :page-size="userSize" :total="userTotal" style="float:right;">
+				</el-pagination>
+			</el-col>
+			<div slot="footer" class="dialog-footer">
+				<el-button @click.native="configurePeoVisible = false">取消</el-button>
+				<el-button type="primary" @click.native="configurePeoSubmit" :loading="configurePeoLoading">提交</el-button>
 			</div>
 		</el-dialog>
 	</section>
@@ -137,6 +172,10 @@
     export default {
         data() {
             return {
+                //配置角色人员
+                configurePeoVisible: false,
+                //配置角色人员loading
+                configurePeoLoading: false,
                 /**
                  * 过滤条件
                  */
@@ -216,13 +255,29 @@
                 menuTreeCheckedKeys: [],
                 //选中的角色ID
                 roleId: "",
-				//查询不是头部的菜单
+                //查询不是头部的菜单
                 isTitle:'N',
-				//初始化缓存类
+                //初始化缓存类
                 util:util,
+                //用户列表
+                userList:[],
+                user:[],
+                //用户列表Loading
+                userListLoading: false,
+                //用户列表下标尺寸
+                userSize:utils.size,
+                userPage: 1,
+                userTotal:0,
+                userSelection:[],
             }
         },
         methods: {
+            //配置角色人员选中的事件
+            handleSelectionChange(val) {
+                console.log(JSON.stringify(val))
+				let vm = this
+				vm.userSelection = val
+            },
             /**
              * 过滤查询条件
              */
@@ -242,7 +297,7 @@
                 let params = {
                     roleId: vm.roleId,
                     type: vm.menuType,
-					isTitle:vm.isTitle,
+                    isTitle:vm.isTitle,
                 };
                 vm.listLoading = true;
                 post(instanceUrl.getGroupMenu,params).then((res) => {
@@ -279,6 +334,11 @@
              */
             formatDel: function (row, column) {
                 return row.isDel == 'N' ? '否' : row.isDel == 'Y' ? '是' : '未知';
+            },
+            handleUserCurrentChange(val){
+                let vm = this
+                vm.userPage = val;
+                vm.userList =   vm.user.filter((u, index) => index < vm.userSize * vm.userPage && index >= vm.userSize * (vm.userPage - 1));
             },
             handleCurrentChange(val) {
                 let vm = this
@@ -335,6 +395,13 @@
                     vm.listLoading = false;
                     console.log("报错了")
                 })
+            },
+            //显示配置角色人员
+            configurePeople(data){
+                let vm = this
+                vm.configurePeoVisible=true
+                console.log(JSON.stringify(data))
+                vm.getUser()
             },
             //显示配置角色菜单
             configureGroup(data){
@@ -430,14 +497,51 @@
                     }
                 });
             },
+            //配置角色人员
+            configurePeoSubmit(){
+                let vm = this
+                vm.configurePeoVisible = false
+                return
+                /**
+                 * 组装父节点及子节点
+                 */
+                let ids = Object.assign([],vm.$refs.menuTree.getCheckedKeys())
+                ids = ids.concat(vm.$refs.menuTree.getHalfCheckedKeys())
+                let params = {
+                    type:vm.menuType,
+                    ids: ids,
+                    roleId:vm.roleId
+                };
+                vm.listLoading = true;
+                vm.configureLoading = true
+                post(instanceUrl.relationMenu,params).then((res) => {
+                    vm.listLoading = false;
+                    vm.configureLoading = false;
+                    if("success" === res.status) {
+                        vm.configureVisible=false
+                        vm.$message({
+                            message: res.msg,
+                            type: 'success'
+                        });
+                        return
+                    }
+                    vm.$message({
+                        message: res.msg,
+                        type: 'error'
+                    });
+                }).catch((error) => {
+                    vm.listLoading = false;
+                    console.log("报错了")
+                })
+            },
             //配置角色菜单
             configureSubmit(){
                 let vm = this
                 /**
-				 * 组装父节点及子节点
+                 * 组装父节点及子节点
                  */
                 let ids = Object.assign([],vm.$refs.menuTree.getCheckedKeys())
-				ids = ids.concat(vm.$refs.menuTree.getHalfCheckedKeys())
+                ids = ids.concat(vm.$refs.menuTree.getHalfCheckedKeys())
                 let params = {
                     type:vm.menuType,
                     ids: ids,
@@ -499,6 +603,28 @@
                         });
                     }
                 });
+            },
+            //获取用户列表
+            getUser() {
+                let vm = this
+                let params = {};
+                vm.userListLoading = true
+                post(instanceUrl.getUser,params).then((res) => {
+                    vm.userListLoading = false
+                    if("success" == res.status){
+                        vm.userTotal = res.data.length
+                        vm.user = res.data
+                        vm.userList = res.data.filter((u, index) => index < vm.size * vm.userPage && index >= vm.userSize * (vm.userPage - 1))
+                        return
+                    }
+                    vm.$message({
+                        message: res.msg,
+                        type: 'error'
+                    });
+                }).catch((error) => {
+                    vm.userListLoading = false
+                    console.log("报错了")
+                })
             },
         },
         mounted() {
