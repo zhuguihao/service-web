@@ -132,16 +132,34 @@
 
 		<!--配置角色菜单界面-->
 		<el-dialog title="配置角色人员" :visible.sync="configurePeoVisible":close-on-click-modal="false">
+			<el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
+				<el-form :inline="true" :model="userFilter">
+					<el-form-item>
+						<el-input v-model="userFilter.userName" placeholder="姓名"></el-input>
+					</el-form-item>
+					<el-form-item>
+						<el-input v-model="userFilter.userAccount" placeholder="账号"></el-input>
+					</el-form-item>
+					<el-form-item>
+						<el-button type="primary" v-on:click="getGroupUser">查询</el-button>
+					</el-form-item>
+				</el-form>
+			</el-col>
 			<el-table
 					:data="userList"
 					highlight-current-row
 					v-loading="userListLoading"
 					ref="userTable"
 					tooltip-effect="dark"
+					height="400"
+					border
+					row-key="id"
 					@selection-change="handleSelectionChange"
 					style="width: 100%;height:100%;">
 				<el-table-column
+
 						type="selection"
+						reserve-selection
 						width="55"></el-table-column>
 				<el-table-column prop="nickName" label="昵称" width="100" sortable>
 				</el-table-column>
@@ -182,7 +200,6 @@
                 filters: {
                     groupCode: '',
                     groupName: '',
-
                 },
                 group: [],
                 /**
@@ -260,8 +277,8 @@
                 //初始化缓存类
                 util:util,
                 //用户列表
+				user:[],
                 userList:[],
-                user:[],
                 //用户列表Loading
                 userListLoading: false,
                 //用户列表下标尺寸
@@ -269,12 +286,17 @@
                 userPage: 1,
                 userTotal:0,
                 userSelection:[],
+				//用户名字过滤
+                userFilter:{
+                    userName:"",
+                    userAccount:""
+				},
+                userListLoading:false,
             }
         },
         methods: {
             //配置角色人员选中的事件
             handleSelectionChange(val) {
-                console.log(JSON.stringify(val))
 				let vm = this
 				vm.userSelection = val
             },
@@ -282,7 +304,7 @@
              * 过滤查询条件
              */
             filterSerch() {
-                this.$refs.greoupTree.filter(this.filters);
+                this.$refs.greoupTree.filter(this.filters)
             },
             /**
              * 过滤树形结构数据
@@ -307,9 +329,12 @@
                         let checked = Object.assign([],res.data.checked);
                         vm.setMenuTreeCheckedKeys(checked)
                         // vm.menuList = res.data.filter((u, index) => index < vm.size * vm.page && index >= vm.size * (vm.page - 1));
-                    }else{
-                        console.log(res.msg)
+                        return
                     }
+                    vm.$message({
+                        message: res.msg,
+                        type: 'error'
+                    });
                 }).catch((error) => {
                     vm.listLoading = false;
                     console.log("报错了")
@@ -335,10 +360,10 @@
             formatDel: function (row, column) {
                 return row.isDel == 'N' ? '否' : row.isDel == 'Y' ? '是' : '未知';
             },
-            handleUserCurrentChange(val){
+            handleUserCurrentChange(val) {
                 let vm = this
                 vm.userPage = val;
-                vm.userList =   vm.user.filter((u, index) => index < vm.userSize * vm.userPage && index >= vm.userSize * (vm.userPage - 1));
+                vm.userList =  vm.user.filter((u, index) => index < vm.userSize * vm.userPage && index >= vm.userSize * (vm.userPage - 1));
             },
             handleCurrentChange(val) {
                 let vm = this
@@ -361,9 +386,12 @@
                         vm.typeList = Object.assign([],res.data)
                         vm.menuType = res.data.length>0?res.data[0].code:""
                         vm.getMenuList()
-                    }else{
-                        console.log(res.msg)
+                        return
                     }
+                    vm.$message({
+                        message: res.msg,
+                        type: 'error'
+                    });
                 }).catch((error) => {
                     vm.listLoading = false;
                     console.log("报错了")
@@ -399,13 +427,16 @@
             //显示配置角色人员
             configurePeople(data){
                 let vm = this
+                vm.roleId = ""
                 vm.configurePeoVisible=true
-                console.log(JSON.stringify(data))
-                vm.getUser()
+                vm.roleId = data.id
+                if(vm.user.length>0)vm.$refs.userTable.clearSelection();
+                vm.getGroupUser()
             },
             //显示配置角色菜单
             configureGroup(data){
                 let vm = this
+                vm.roleId = ""
                 vm.typeList = []
                 vm.menu = []
                 vm.configureVisible=true
@@ -448,12 +479,12 @@
                                 type: 'success'
                             });
                             vm.serch();
-                        }else{
-                            vm.$message({
-                                message: '修改异常',
-                                type: 'error'
-                            });
+                            return
                         }
+                        vm.$message({
+                            message: res.msg,
+                            type: 'error'
+                        });
                     }).catch((error) => {
                         vm.listLoading = false;
                         console.log("报错了")
@@ -483,12 +514,12 @@
                                         type: 'success'
                                     });
                                     vm.serch();
-                                }else{
-                                    this.$message({
-                                        message: '修改异常',
-                                        type: 'error'
-                                    });
+                                    return
                                 }
+                                vm.$message({
+                                    message: res.msg,
+                                    type: 'error'
+                                });
                             }).catch((error) => {
                                 vm.listLoading = false;
                                 console.log("报错了")
@@ -497,32 +528,53 @@
                     }
                 });
             },
+            /**
+			 * 从后台获取的选中人员名单赋值给当前列表
+             * @param data
+             * @param checkData
+             * @param boolean
+             */
+			userToggleRowSelection(data,checkData,boolean){
+                checkData.forEach((id) =>{
+                    data.forEach((item) => {
+                        if(id == item.id){
+                            this.$refs.userTable.toggleRowSelection(item,boolean)
+                        }
+                    })
+				})
+			},
             //配置角色人员
             configurePeoSubmit(){
                 let vm = this
-                vm.configurePeoVisible = false
-                return
-                /**
-                 * 组装父节点及子节点
-                 */
-                let ids = Object.assign([],vm.$refs.menuTree.getCheckedKeys())
-                ids = ids.concat(vm.$refs.menuTree.getHalfCheckedKeys())
+				// let data = ["5186294f490b480aaf35df135fea2185","b750934010b44b928e9908c24bde5b3f","692f38cb423e481b90d40d0502394bf6"]
+                // vm.userToggleRowSelection(vm.user,data,true)
+                // this.$refs.userTable.toggleAllSelection();
+                // return
+				/**
+				 * 获取选中人员ID名单
+				 */
+				let data = []
+                vm.userSelection.forEach(item=>{
+					data.push(item.id)
+				})
+				console.log(JSON.stringify(data))
+
                 let params = {
-                    type:vm.menuType,
-                    ids: ids,
+                    ids: data,
                     roleId:vm.roleId
                 };
-                vm.listLoading = true;
-                vm.configureLoading = true
-                post(instanceUrl.relationMenu,params).then((res) => {
-                    vm.listLoading = false;
-                    vm.configureLoading = false;
+                vm.userListLoading = true;
+                vm.configurePeoLoading = true
+                post(instanceUrl.relationUser,params).then((res) => {
+                    vm.userListLoading = false;
+                    vm.configurePeoLoading = false;
                     if("success" === res.status) {
-                        vm.configureVisible=false
+                        vm.configurePeoVisible = false
                         vm.$message({
                             message: res.msg,
                             type: 'success'
                         });
+
                         return
                     }
                     vm.$message({
@@ -605,16 +657,23 @@
                 });
             },
             //获取用户列表
-            getUser() {
+            getGroupUser() {
                 let vm = this
-                let params = {};
+                let params = {
+                    nickName: vm.userFilter.userName,
+                    account: vm.userFilter.userAccount,
+                    roleId: vm.roleId
+				};
                 vm.userListLoading = true
-                post(instanceUrl.getUser,params).then((res) => {
+                post(instanceUrl.getGroupUser,params).then((res) => {
                     vm.userListLoading = false
                     if("success" == res.status){
-                        vm.userTotal = res.data.length
-                        vm.user = res.data
-                        vm.userList = res.data.filter((u, index) => index < vm.size * vm.userPage && index >= vm.userSize * (vm.userPage - 1))
+                        let userList = Object.assign([],res.data.userList)
+                        let checkedList = Object.assign([],res.data.checkedList)
+                        vm.userToggleRowSelection(userList,checkedList,true)
+                        vm.userTotal = userList.length
+                        vm.user = userList
+                        vm.userList = vm.user.filter((u, index) => index < vm.size * vm.userPage && index >= vm.userSize * (vm.userPage - 1))
                         return
                     }
                     vm.$message({

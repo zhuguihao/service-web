@@ -309,7 +309,7 @@
                         return
                     }
                     vm.$message({
-                        message: msg,
+                        message: res.msg,
                         type: 'error'
                     });
                 }).catch((error) => {
@@ -362,12 +362,12 @@
                                         type: 'success'
                                     });
                                     vm.serch();
-								}else{
-                                    this.$message({
-                                        message: '修改异常',
-                                        type: 'error'
-                                    });
-								}
+                                    return
+                                }
+                                vm.$message({
+                                    message: res.msg,
+                                    type: 'error'
+                                });
                             }).catch((error) => {
                                 vm.listLoading = false;
                                 console.log("报错了")
@@ -397,12 +397,12 @@
                                         type: 'success'
                                     });
                                     vm.serch();
-                                }else{
-                                    vm.$message({
-                                        message: '新增异常',
-                                        type: 'error'
-                                    });
+                                    return
                                 }
+                                vm.$message({
+                                    message: res.msg,
+                                    type: 'error'
+                                });
                             }).catch((error) => {
                                 console.log("报错了")
                             })

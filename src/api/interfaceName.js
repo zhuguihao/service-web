@@ -54,10 +54,19 @@ let instanceUrl = {
     /**
      * 角色关联菜单表
      */
-    relationMenu: "/menu/relationMenu",
+    relationMenu: "/group/relationMenu",
+    /**
+     * 角色关联用户表
+     */
+    relationUser: "/group/relationUser",
     /**
      * 登录接口
      */
     login: "/login/login",
+    /**
+     * 查询角色关联人员信息
+     */
+    getGroupUser: "/login/getGroupUser",
+
 }
 export default instanceUrl;

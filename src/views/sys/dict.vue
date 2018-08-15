@@ -213,9 +213,9 @@
                         vm.dict = res.data;
                         vm.dictList = res.data.filter((u, index) => index < vm.size * vm.page && index >= vm.size * (vm.page - 1));
                         return
-					}
+                    }
                     vm.$message({
-                        message: msg,
+                        message: res.msg,
                         type: 'error'
                     });
                 }).catch((error) => {
@@ -260,7 +260,6 @@
                             vm.editLoading = true;
 							//NProgress.start();
 							let params = Object.assign({}, this.editForm);
-							// para.birth = (!para.birth || para.birth == '') ? '' : util.formatDate.format(new Date(para.birth), 'yyyy-MM-dd');
                             post(instanceUrl.editDict,params).then((res) => {
                                 vm.editLoading = true;
                                 vm.listLoading = false;
@@ -274,12 +273,12 @@
                                         type: 'success'
                                     });
                                     vm.serch();
-								}else{
-                                    this.$message({
-                                        message: '修改异常',
-                                        type: 'error'
-                                    });
-								}
+                                    return
+                                }
+                                vm.$message({
+                                    message: res.msg,
+                                    type: 'error'
+                                });
                             }).catch((error) => {
                                 console.log("报错了")
                             })
@@ -307,12 +306,12 @@
                                         type: 'success'
                                     });
                                     vm.serch();
-                                }else{
-                                    this.$message({
-                                        message: '新增异常',
-                                        type: 'error'
-                                    });
+                                    return
                                 }
+                                vm.$message({
+                                    message: res.msg,
+                                    type: 'error'
+                                });
                             }).catch((error) => {
                                 console.log("报错了")
                             })
