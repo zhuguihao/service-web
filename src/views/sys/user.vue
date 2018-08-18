@@ -126,7 +126,7 @@
                     vm.$message({
                         message: res.msg,
                         type: 'error'
-                    });
+                    })
                 }).catch((error) => {
                     vm.listLoading = false;
                     console.log("报错了")

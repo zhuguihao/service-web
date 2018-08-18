@@ -103,7 +103,7 @@
                 console.log('submit!');
             },
             handleopen() {
-                //console.log('handleopen');
+                console.log('handleopen');
             },
             handleclose() {
                 //console.log('handleclose');

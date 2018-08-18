@@ -383,6 +383,7 @@
 					if (valid) {
                         vm.$confirm('确认提交吗？', '提示', {}).then(() => {
 							//NProgress.start();
+                            vm.addForm.menuUrl?vm.addForm.menuUrl===""?"/":vm.addForm.menuUrl:vm.addForm.menuUrl
 							let params = Object.assign({}, vm.addForm);
                             vm.addLoading = true;
                             post(instanceUrl.addMenu,params).then((res) => {

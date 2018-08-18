@@ -67,6 +67,17 @@ let instanceUrl = {
      * 查询角色关联人员信息
      */
     getGroupUser: "/login/getGroupUser",
-
+    /**
+     * 查询产品系列表信息
+     */
+    getProductSeries: "/pcProduct/getProductSeries",
+    /**
+     * 新增产品系列表信息
+     */
+    pcProductInsert: "/pcProduct/pcProductInsert",
+    /**
+     * 查询产品系列表信息
+     */
+    pcProductUpdate: "/pcProduct/pcProductUpdate",
 }
 export default instanceUrl;

@@ -8,7 +8,8 @@
 			</el-menu-item>
 
 			<el-submenu v-if="navMenu.children &&navMenu.isTitle==='Y'"
-						:key="navMenu.id" :data="navMenu" :index="index+''">
+						:key="navMenu.id" :data="navMenu" :index="navMenu.menuUrl">
+				<!--:index="index+''"-->
 				<template slot="title">
 					<i :class="navMenu.menuIcon"></i>
 					<span> {{navMenu.menuName}}</span>
