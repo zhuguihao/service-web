@@ -3,14 +3,29 @@
 		<!--工具条-->
 		<el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
 			<el-form :inline="true" :model="filters">
-				<el-form-item label="系列代码：">
-					<el-input v-model="filters.seriesCode" placeholder="请输入系列代码"></el-input>
+				<el-form-item label="代码：">
+					<el-input v-model="filters.proCode" placeholder="请输入代码"></el-input>
 				</el-form-item>
-				<el-form-item label="系列名称：">
-					<el-input v-model="filters.series" placeholder="请输入系列名称"></el-input>
+				<el-form-item label="名称：">
+					<el-input v-model="filters.proName" placeholder="请输入名称"></el-input>
 				</el-form-item>
+				<el-form-item label="产品系列：">
+					<el-select v-model="filters.tSeriesId" placeholder="请选择产品系列"
+						@focus="getProductSeries"
+						:loading="seriesLoading">
+						<!--@change="proNameChange"-->
+						<el-option
+								v-for="item in productSeriesList"
+								:key="item.id"
+								:label="item.series"
+								:value="item.id">
+						</el-option>
+					</el-select>
+				</el-form-item>
+			</el-form>
+			<el-form :inline="true">
 				<el-form-item>
-					<el-button type="primary" v-on:click="getProductSeries">查询</el-button>
+					<el-button type="primary" v-on:click="getProductName">查询</el-button>
 				</el-form-item>
 				<el-form-item>
 					<el-button type="primary" @click="handleAdd">新增</el-button>
@@ -19,10 +34,10 @@
 		</el-col>
 
 		<!--列表-->
-		<el-table :data="productSeriesList" highlight-current-row v-loading="listLoading" style="width: 100%;">
-			<el-table-column prop="seriesCode" label="系列代码" width="120" sortable>
+		<el-table :data="productNameList" highlight-current-row v-loading="listLoading" style="width: 100%;">
+			<el-table-column prop="proCode" label="代码" width="120" sortable>
 			</el-table-column>
-			<el-table-column prop="series" label="系列名称" min-width="120" sortable>
+			<el-table-column prop="proName" label="名称" min-width="120" sortable>
 			</el-table-column>
 			<el-table-column prop="sort" label="排序" width="80" sortable>
 			</el-table-column>
@@ -43,13 +58,24 @@
 		</el-col>
 
 		<!--编辑界面-->
-		<el-dialog title="编辑产品系列" :visible.sync="editFormVisible" :close-on-click-modal="false">
+		<el-dialog title="编辑产品名称" :visible.sync="editFormVisible" :close-on-click-modal="false">
 			<el-form :model="editForm" label-width="120px" :rules="editFormRules" ref="editForm">
-				<el-form-item label="产品系列代码" prop="seriesCode">
-					<el-input v-model="editForm.seriesCode" auto-complete="off" />
+				<el-form-item label="产品系列：" prop="tSeriesId">
+					<el-select v-model="editForm.tSeriesId" placeholder="请选择产品系列"
+							   :loading="seriesLoading">
+						<el-option
+								v-for="item in productSeries"
+								:key="item.id"
+								:label="item.series"
+								:value="item.id">
+						</el-option>
+					</el-select>
 				</el-form-item>
-				<el-form-item label="产品系列名称" prop="series">
-					<el-input v-model="editForm.series" auto-complete="off" />
+				<el-form-item label="产品名称代码" prop="proCode">
+					<el-input v-model="editForm.proCode" auto-complete="off" />
+				</el-form-item>
+				<el-form-item label="产品名称" prop="proName">
+					<el-input v-model="editForm.proName" auto-complete="off" />
 				</el-form-item>
 				<el-form-item label="排序号" prop="sort">
 					<el-input v-model="editForm.sort" auto-complete="off" />
@@ -68,14 +94,26 @@
 		</el-dialog>
 
 		<!--新增界面-->
-		<el-dialog title="新增系列" :close-on-click-modal="false"
+		<el-dialog title="新增产品名称" :close-on-click-modal="false"
 				   :visible.sync="addFormVisible">
 			<el-form :model="addForm" label-width="120px" :rules="addFormRules" ref="addForm">
-                <el-form-item label="产品系列代码" prop="seriesCode">
-                    <el-input v-model="addForm.seriesCode" auto-complete="off" />
+				<el-form-item label="产品系列：" prop="tSeriesId">
+					<el-select v-model="addForm.tSeriesId" placeholder="请选择产品系列"
+							   @focus="getProductSeries"
+							   :loading="seriesLoading">
+						<el-option
+								v-for="item in productSeries"
+								:key="item.id"
+								:label="item.series"
+								:value="item.id">
+						</el-option>
+					</el-select>
+				</el-form-item>
+                <el-form-item label="产品名称代码" prop="proCode">
+                    <el-input v-model="addForm.proCode" auto-complete="off" />
                 </el-form-item>
-				<el-form-item label="产品系列名称" prop="series">
-					<el-input v-model="addForm.series" auto-complete="off" />
+				<el-form-item label="产品名称" prop="proName">
+					<el-input v-model="addForm.proName" auto-complete="off" />
 				</el-form-item>
 				<el-form-item label="排序号" prop="sort">
 					<el-input v-model="addForm.sort" auto-complete="off" />
@@ -108,14 +146,15 @@
 				 * 过滤条件
                  */
 				filters: {
-                    seriesCode: '',
-                    series:'',
+                    proCode: '',
+                    proName: '',
+                    tSeriesId: '',
 				},
-                productSeries: [],
+                productName: [],
 				/**
 				 * 分页之后的数据展示
 				 */
-                productSeriesList:[],
+                productNameList:[],
 				total: 0,
 				page: 1,
 				size:utils.size,
@@ -123,10 +162,13 @@
 				editFormVisible: false,//编辑界面是否显示
 				editLoading: false,
 				editFormRules: {
-                    seriesCode: [
+                    tSeriesId: [
+                        { required: true, message: '请选择产品系列', trigger: 'blur' }
+                    ],
+                    proCode: [
                         { required: true, message: '请输入产品系列代码', trigger: 'blur' }
                     ],
-                    series: [
+                    proName: [
                         { required: true, message: '请输入产品系列名称', trigger: 'blur' }
                     ],
                     sort: [
@@ -136,18 +178,21 @@
 				//编辑界面数据
 				editForm: {
                     id: '',
-                    seriesCode: '',
-                    series: '',
+                    proCode: '',
+                    proName: '',
                     sort: 1,
                     delFlag: "N",
 				},
 				addFormVisible: false,//新增界面是否显示
 				addLoading: false,
 				addFormRules: {
-                    seriesCode: [
+                    tSeriesId: [
+                        { required: true, message: '请选择产品系列', trigger: 'blur' }
+                    ],
+                    proCode: [
                         { required: true, message: '请输入产品系列代码', trigger: 'blur' }
                     ],
-                    series: [
+                    proName: [
                         { required: true, message: '请输入产品系列名称', trigger: 'blur' }
                     ],
                     sort: [
@@ -157,11 +202,19 @@
 				//新增界面数据
 				addForm: {
                     id: '',
-                    seriesCode: '',
-                    series: '',
+                    tSeriesId:'',
+                    proCode: '',
+                    proName: '',
                     sort: 1,
                     delFlag: "N",
 				},
+				//产品系列
+                productSeries:[],
+				//产品列表条件查询
+                productSeriesList:[],
+				seriesLoading:false,
+				//查询条件选择的系列ID
+                productSeriesId:'',
 			}
 		},
 		methods: {
@@ -170,17 +223,51 @@
              */
             getProductSeries(){
                 let vm = this
+                vm.productSeriesList = []
+                let params = {}
+                vm.seriesLoading = true;
+                post(instanceUrl.getProductSeries,params).then((res) => {
+                    vm.seriesLoading = false;
+                    if("success" === res.status) {
+                        vm.total = res.data.length;
+                        vm.productSeries = Object.assign([],res.data)
+                        let data = []
+                        data.push({
+                            id:'',
+                            series:'全部'
+						});
+                        res.data.forEach((item)=>{
+                            data.push(item)
+						})
+                        vm.productSeriesList = Object.assign([],data)
+                        return
+                    }
+                    vm.$message({
+                        message: res.msg,
+                        type: 'error'
+                    });
+                }).catch((error) => {
+                    vm.listLoading = false;
+                    console.log("报错了")
+                })
+            },
+            /**
+             * 获取产品名称表数据接口
+             */
+            getProductName(){
+                let vm = this
                 let params = {
-                    seriesCode:vm.filters.seriesCode,
-                    series:vm.filters.series,
+                    proCode:vm.filters.proCode,
+                    proName:vm.filters.proName,
+                    tSeriesId:vm.filters.tSeriesId,
                 }
                 vm.listLoading = true;
-                post(instanceUrl.getProductSeries,params).then((res) => {
+                post(instanceUrl.getProductName,params).then((res) => {
                     vm.listLoading = false;
                     if("success" === res.status) {
                         vm.total = res.data.length;
-                        vm.productSeries = res.data;
-                        vm.productSeriesList = res.data.filter((u, index) => index < vm.size * vm.page && index >= vm.size * (vm.page - 1));
+                        vm.productName = res.data;
+                        vm.productNameList = res.data.filter((u, index) => index < vm.size * vm.page && index >= vm.size * (vm.page - 1));
                         return
                     }
                     vm.$message({
@@ -201,11 +288,12 @@
 			handleCurrentChange(val) {
                 let vm = this
                 vm.page = val;
-                vm.productSeriesList =  vm.productSeries.filter((u, index) => index < vm.size * vm.page && index >= vm.size * (vm.page - 1));
+                vm.productNameList =  vm.productName.filter((u, index) => index < vm.size * vm.page && index >= vm.size * (vm.page - 1));
 			},
 
 			//显示编辑界面
 			handleEdit: function (index, row) {
+                this.getProductSeries()
 				this.editFormVisible = true;
 				this.editLoading = false;
 				this.editForm = Object.assign({}, row);
@@ -214,11 +302,11 @@
 			//显示新增界面
 			handleAdd: function () {
                 let vm = this
-                vm.addFormVisible = true;
+                vm.addFormVisible = true
                 vm.addForm = Object.assign({}, {
                     id: '',
-                    seriesCode: '',
-                    series: '',
+                    proCode: '',
+                    proName: '',
                     sort: 1,
                     delFlag: "N",
                 });
@@ -233,7 +321,7 @@
 							//NProgress.start();
 							let params = Object.assign({}, this.editForm);
                             vm.editLoading = true;
-                            post(instanceUrl.pcProductUpdate,params).then((res) => {
+                            post(instanceUrl.productNameUpdate,params).then((res) => {
                                 vm.editLoading = false;
                                 vm.listLoading = false;
                                 //rest表单
@@ -245,7 +333,7 @@
                                         message: '修改成功',
                                         type: 'success'
                                     });
-                                    vm.getProductSeries();
+                                    vm.getProductName();
                                     return
                                 }
                                 vm.$message({
@@ -253,7 +341,7 @@
                                     type: 'error'
                                 });
                             }).catch((error) => {
-                                vm.listLoading = false;
+                                vm.listLoading = false
                                 console.log("报错了")
                             })
 						});
@@ -269,7 +357,7 @@
 							//NProgress.start();
 							let params = Object.assign({}, vm.addForm);
                             vm.addLoading = true;
-                            post(instanceUrl.pcProductInsert,params).then((res) => {
+                            post(instanceUrl.productNameInsert,params).then((res) => {
                                 vm.addLoading = false;
                                 //NProgress.done();
                                 vm.$refs['addForm'].resetFields();
@@ -280,7 +368,7 @@
                                         message: '新增成功',
                                         type: 'success'
                                     });
-                                    vm.getProductSeries();
+                                    vm.getProductName();
                                     return
                                 }
                                 vm.$message({
@@ -296,7 +384,8 @@
 			}
 		},
         mounted() {
-            this.getProductSeries();
+            this.getProductName();
+            this.getProductSeries()
         }
 	}
 

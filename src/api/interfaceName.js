@@ -79,5 +79,29 @@ let instanceUrl = {
      * 查询产品系列表信息
      */
     pcProductUpdate: "/pcProduct/pcProductUpdate",
+    /**
+     * 查询产品名称表信息
+     */
+    getProductName: "/pcProduct/getProductName",
+    /**
+     * 修改产品名称表信息
+     */
+    productNameUpdate: "/pcProduct/productNameUpdate",
+    /**
+     * 新增产品名称表信息
+     */
+    productNameInsert: "/pcProduct/productNameInsert",
+    /**
+     * 查询产品表信息
+     */
+    getProduct: "/pcProduct/getProduct",
+    /**
+     * 新增产品表信息
+     */
+    productInsert: "/pcProduct/productInsert",
+    /**
+     * 新增产品表信息
+     */
+    productUpdate: "/pcProduct/productUpdate",
 }
 export default instanceUrl;
