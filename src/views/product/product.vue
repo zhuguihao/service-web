@@ -43,7 +43,7 @@
 			<el-table-column prop="tSeriesId" label="产品系列" width="260" sortable
 							 :formatter="formatSeries">
 			</el-table-column>
-			<el-table-column prop="proNameId" label="产品名称" width="200" sortable
+			<el-table-column prop="proNameId" label="产品名称" width="260" sortable
 							 :formatter="formatName">
 			</el-table-column>
 			<el-table-column prop="proModel" label="产品型号" width="200" sortable>
@@ -234,8 +234,8 @@
 				 * 过滤条件
                  */
 				filters: {
-                    tSeriesId: '*',
-                    proNameId: '*',
+                    tSeriesId: '',
+                    proNameId: '',
                     proModel: '',
 				},
                 product: [],
@@ -329,9 +329,30 @@
                 seriesSelLoading:false,
                 //产品名称下拉框获取loading
                 proNameLoading:false,
+                /**
+                 * 过滤条件
+                 */
+                selFilters: {
+                    tSeriesId: '',
+                    proNameId: '',
+                    proModel: '',
+                },
             }
 		},
 		methods: {
+		    /**
+			 * 过滤产品名称列表
+			 */
+		    proNameFilters(id){
+		        let vm = this
+				let data = []
+				data = vm.productName.filter((item)=>{
+				    if(item.id === id){
+				        return item
+					}
+				})
+                console.log("proNameFilters:::::"+JSON.stringify(data))
+			},
             /**
              * 获取产品系列表数据接口
              */
@@ -339,7 +360,8 @@
                 let vm = this
                 vm.productSeriesList = Object.assign([],[])
                 vm.productNameList = Object.assign([],[])
-				vm.filters.proNameId =  '*'
+				vm.selFilters.proNameId =  ''
+                vm.filters.proNameId =  ''
                 let params = {}
                 vm.seriesLoading = true;
                 post(instanceUrl.getProductSeries,params).then((res) => {
@@ -348,7 +370,7 @@
                         vm.productSeries = Object.assign([],res.data)
 						let data = []
                         data.push({
-                            id:'*',
+                            id:'',
                             series:'全部'
                         });
                         res.data.forEach((item)=>{
@@ -379,13 +401,14 @@
                         vm.productName = Object.assign([],res.data)
                         let data = []
                         data.push({
-                            id: '*',
+                            id: '',
                             proName: '全部'
                         });
                         res.data.forEach((item)=>{
                             data.push(item)
                         })
                         vm.productNameList = Object.assign([],data)
+                        this.proNameFilters("2")
                         return
                     }
                     vm.$message({
@@ -403,8 +426,8 @@
             getProduct(){
                 let vm = this
                 let params = {
-                    tSeriesId: vm .filters.tSeriesId,
-                    proNameId: vm .filters.proNameId,
+                    tSeriesId: vm .filters.tSeriesId==='*'?"":vm .filters.tSeriesId,
+                    proNameId: vm .filters.proNameId==='*'?"":vm .filters.proNameId,
                     proModel: vm .filters.proModel,
 				}
                 vm.listLoading = true;
@@ -440,7 +463,6 @@
             },
 			/**
 			 * 产品名称转换转换
-			 *
 			 */
             formatName: function (row, column) {
                 let vm = this
@@ -561,9 +583,11 @@
 			}
 		},
         mounted() {
+
+            this.getProductName()
 		    this.getProductSeries()
             this.getProduct()
-            this.getProductName()
+
         }
 	}
 
