@@ -103,5 +103,9 @@ let instanceUrl = {
      * 新增产品表信息
      */
     productUpdate: "/pcProduct/productUpdate",
+    /**
+     * 查询电话审核数据
+     */
+    getTelephoneAudit:"/saleAfter/getSaleAfter",
 }
 export default instanceUrl;

@@ -17,10 +17,10 @@
 				</el-form-item>
 				<el-form-item label="产品名称：">
 					<el-select v-model="filters.proNameId" placeholder="请选择产品名称"
-							   @focus="getProductName"
+							   @focus="selProductNameByProductSeries"
 							   :loading="proNameLoading">
 						<el-option
-								v-for="item in productNameList"
+								v-for="item in selProductNameList"
 								:key="item.id"
 								:label="item.proName"
 								:value="item.id">
@@ -83,7 +83,7 @@
 			<el-form :model="editForm" label-width="120px" :rules="editFormRules" ref="editForm">
 				<el-form-item label="产品系列：">
 					<el-select v-model="editForm.tSeriesId" placeholder="请选择产品系列"
-							   @focus="getProductSeries"
+							   @focus="editGetProductSeries"
 							   :loading="seriesSelLoading">
 						<el-option
 								v-for="item in productSeries"
@@ -95,10 +95,10 @@
 				</el-form-item>
 				<el-form-item label="产品名称：">
 					<el-select v-model="editForm.proNameId" placeholder="请选择产品名称"
-							   @focus="getProductName"
+							   @focus="fromProductNameByProductSeries(editForm)"
 							   :loading="proNameLoading">
 						<el-option
-								v-for="item in productName"
+								v-for="item in fromProductNameList"
 								:key="item.id"
 								:label="item.proName"
 								:value="item.id">
@@ -166,10 +166,10 @@
 				</el-form-item>
 				<el-form-item label="产品名称：" prop="proNameId">
 					<el-select v-model="addForm.proNameId" placeholder="请选择产品名称"
-							   @focus="getProductName"
+							   @focus="fromProductNameByProductSeries(addForm)"
 							   :loading="proNameLoading">
 						<el-option
-								v-for="item in productName"
+								v-for="item in fromProductNameList"
 								:key="item.id"
 								:label="item.proName"
 								:value="item.id">
@@ -337,21 +337,55 @@
                     proNameId: '',
                     proModel: '',
                 },
+				//筛选条件中的产品名称列表
+                selProductNameList:[{id:"",proName:"全部"}],
+				//新增或修改产品型号
+                fromProductNameList:[],
             }
 		},
 		methods: {
+            /**
+             * 根据产品系列过滤产品名称列表数据----新增和修改
+             */
+            fromProductNameByProductSeries(fromData){
+                let vm = this
+                vm.fromProductNameList = Object.assign([],vm.proNameFilters(fromData.tSeriesId,[]))
+            },
+		    /**
+			 * 根据产品系列过滤产品名称列表数据---筛选条件
+			 */
+		    selProductNameByProductSeries(){
+		        let vm = this
+				vm.selProductNameList = Object.assign([],vm.proNameFilters(vm.filters.tSeriesId,[{id:"",proName:"全部"}]))
+			},
 		    /**
 			 * 过滤产品名称列表
 			 */
-		    proNameFilters(id){
+		    proNameFilters(id,item){
 		        let vm = this
 				let data = []
-				data = vm.productName.filter((item)=>{
-				    if(item.id === id){
+				item.forEach((i)=>{
+                    data.push(i)
+                })
+				let filterProNameList = vm.productName.filter((item)=>{
+				    if(item.tSeriesId === id){
 				        return item
 					}
 				})
+                console.log("filterProNameList:::::"+JSON.stringify(filterProNameList))
+                filterProNameList.forEach((i)=>{
+                    data.push(i)
+				})
+
                 console.log("proNameFilters:::::"+JSON.stringify(data))
+				return data
+			},
+			/**
+			 * 修改界面获取产品系列数据，删除已选产品名称数据
+			 */
+            editGetProductSeries(){
+                this.editForm.proNameId = ''
+		        this.getProductSeries()
 			},
             /**
              * 获取产品系列表数据接口
@@ -394,7 +428,7 @@
             getProductName(){
                 let vm = this
                 let params = {
-                    tSeriesId: vm.filters.tSeriesId
+                    // tSeriesId: vm.filters.tSeriesId
 				}
                 post(instanceUrl.getProductName,params).then((res) => {
                     if("success" === res.status) {
@@ -408,7 +442,7 @@
                             data.push(item)
                         })
                         vm.productNameList = Object.assign([],data)
-                        this.proNameFilters("2")
+                        // this.proNameFilters("2")
                         return
                     }
                     vm.$message({
@@ -489,13 +523,20 @@
 			//显示编辑界面
 			handleEdit: function (index, row) {
 				this.editFormVisible = true;
+                this.fromProductNameList = this.productName.filter((item)=>{
+                    if(row.proNameId === item.id){
+                        return item;
+                    }
+                })
 				this.editLoading = false;
+
 				this.editForm = Object.assign({}, row);
 			},
 
 			//显示新增界面
 			handleAdd: function () {
                 let vm = this
+				vm.fromProductNameList = []
                 vm.addFormVisible = true;
                 vm.addForm = Object.assign({}, {
                     id: '',

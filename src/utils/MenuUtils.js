@@ -14,6 +14,7 @@ export default (routers,data) => {
         let data = []
         generaMenu(data,item.children)
         pushRouters(menu.children,data)
+
         routers.push(menu)
     })
     console.log("routers:"+JSON.stringify(routers))

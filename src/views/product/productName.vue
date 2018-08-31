@@ -3,16 +3,10 @@
 		<!--工具条-->
 		<el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
 			<el-form :inline="true" :model="filters">
-				<el-form-item label="代码：">
-					<el-input v-model="filters.proCode" placeholder="请输入代码"></el-input>
-				</el-form-item>
-				<el-form-item label="名称：">
-					<el-input v-model="filters.proName" placeholder="请输入名称"></el-input>
-				</el-form-item>
 				<el-form-item label="产品系列：">
 					<el-select v-model="filters.tSeriesId" placeholder="请选择产品系列"
-						@focus="getProductSeries"
-						:loading="seriesLoading">
+							   @focus="getProductSeries"
+							   :loading="seriesLoading">
 						<!--@change="proNameChange"-->
 						<el-option
 								v-for="item in productSeriesList"
@@ -22,8 +16,12 @@
 						</el-option>
 					</el-select>
 				</el-form-item>
-			</el-form>
-			<el-form :inline="true">
+				<el-form-item label="代码：">
+					<el-input v-model="filters.proCode" placeholder="请输入代码"></el-input>
+				</el-form-item>
+				<el-form-item label="名称：">
+					<el-input v-model="filters.proName" placeholder="请输入名称"></el-input>
+				</el-form-item>
 				<el-form-item>
 					<el-button type="primary" v-on:click="getProductName">查询</el-button>
 				</el-form-item>

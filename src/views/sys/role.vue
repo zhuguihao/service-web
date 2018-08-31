@@ -586,6 +586,20 @@
                     console.log("报错了")
                 })
             },
+            /**
+             * 从已选的菜单节点中去除父级节点ID
+             */
+            delParentId(ids){
+                let vm = this
+                let isNoTileIds = ids.filter((id)=>{
+                    vm.menu.forEach((item)=>{
+                        if(id === item.id){
+                            return id
+                        }
+                    })
+                })
+                console.log("isNoTileIds::::"+JSON.stringify(isNoTileIds))
+            },
             //配置角色菜单
             configureSubmit(){
                 let vm = this
@@ -593,7 +607,8 @@
                  * 组装父节点及子节点
                  */
                 let ids = Object.assign([],vm.$refs.menuTree.getCheckedKeys())
-                ids = ids.concat(vm.$refs.menuTree.getHalfCheckedKeys())
+                // ids = ids.concat(vm.$refs.menuTree.getHalfCheckedKeys())
+                // vm.delParentId(ids)
                 let params = {
                     type:vm.menuType,
                     ids: ids,
