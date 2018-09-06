@@ -106,6 +106,26 @@ let instanceUrl = {
     /**
      * 查询电话审核数据
      */
-    getTelephoneAudit:"/saleAfter/getSaleAfter",
+    getTelephoneAudit:"/saleAfter/getTelephoneAudit",
+    /**
+     * 初步电话审核
+     * 201800904
+     */
+    telephoneAudit:"/saleAfter/telephoneAudit",
+    /**
+     * 初步电话审核-拒绝
+     * 201800904
+     */
+    telephoneAuditReject:"/saleAfter/telephoneAuditReject",
+    /**
+     * 查询快递运单信息
+     * 201800905
+     */
+    getExpressDelivery:"/saleAfter/getExpressDelivery",
+    /**
+     * 签收客户快递
+     * 201800905
+     */
+    signExpress:"/saleAfter/signExpress"
 }
 export default instanceUrl;

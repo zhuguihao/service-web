@@ -17,31 +17,37 @@
 
 		<!--列表-->
 		<el-table :data="dataList" highlight-current-row v-loading="listLoading" style="width: 100%;height:100%;">
+			<el-table-column prop="cusName" label="客户姓名" min-width="200" sortable>
+			</el-table-column>
+			<el-table-column prop="cusTelphone" label="客户手机号" width="120" sortable>
+			</el-table-column>
 			<el-table-column prop="series" label="产品系列" width="200" sortable>
 			</el-table-column>
 			<el-table-column prop="proName" label="产品名称" width="200" sortable>
 			</el-table-column>
 			<el-table-column prop="proModel" label="产品型号" min-width="200" sortable>
 			</el-table-column>
-			<el-table-column prop="proDesc" label="产品说明" width="300" sortable>
+			<el-table-column prop="waybillNumber" label="运单号" width="300" sortable>
 			</el-table-column>
-			<el-table-column prop="barCode" label="产品流水号" min-width="200" sortable>
+			<el-table-column prop="address" label="联系地址" min-width="200" sortable>
 			</el-table-column>
-			<el-table-column prop="cusName" label="客户姓名" min-width="120" sortable>
+			<el-table-column prop="addressee" label="寄件人信息" min-width="120" sortable>
 			</el-table-column>
-			<el-table-column prop="cusTelphone" label="客户手机号" width="120" sortable>
+			<el-table-column prop="addressPhone" label="寄件人手机号" min-width="150" sortable>
 			</el-table-column>
-			<el-table-column prop="faultPoint" label="损坏点" min-width="200" sortable>
+			<el-table-column prop="isMailingAccessories" label="是否为直寄配件" min-width="150" sortable
+							 :formatter="formatDel">
 			</el-table-column>
 			<el-table-column prop="applyStatus" label="售后状态" min-width="120" sortable>
 			</el-table-column>
 			<el-table-column prop="isDel" label="是否禁用" min-width="120" sortable
 							 :formatter="formatDel">
 			</el-table-column>
-			<el-table-column label="操作" width="100">
+			<el-table-column label="操作" width="150">
 				<template slot-scope="scope">
-					<el-button size="small" v-if="'first_trial'===scope.row.applyStatus" @click="handleEdit(scope.$index, scope.row)">审核</el-button>
-					<el-button size="small" v-if="'the_trial_pass'===scope.row.applyStatus" @click="reminder(scope.$index, scope.row)">催单</el-button>
+					<el-button size="small" v-if="'courier_tracking'===scope.row.applyStatus" @click="signAndExpress(scope.$index, scope.row)">签收</el-button>
+					<el-button size="small" v-if="'courier_tracking_reject'===scope.row.applyStatus" @click="reminder(scope.$index, scope.row)">通知客户被拒</el-button>
+					<el-button size="small" v-if="'company_courier_tracking'===scope.row.applyStatus" @click="reminderCustomer(scope.$index, scope.row)">通知客户签收</el-button>
 				</template>
 			</el-table-column>
 		</el-table>
@@ -52,7 +58,7 @@
 			</el-pagination>
 		</el-col>
 
-		<!--审核界面-->
+		<!--新增界面-->
 		<el-dialog title="审核" :close-on-click-modal="false"
 				   :visible.sync="addFormVisible">
 			<el-form :model="addForm" label-width="120px" :rules="addForm.isPay==='N'?addFormRules:addFromPayRules" ref="addForm">
@@ -98,21 +104,6 @@
 			<div slot="footer" class="dialog-footer">
 				<el-button @click.native="addFormVisible = false">取消</el-button>
 				<el-button type="primary" @click.native="addSubmit" :loading="addLoading">提交</el-button>
-				<el-button type="danger" @click.native="openRejectSubmit" :loading="addLoading">拒绝</el-button>
-			</div>
-		</el-dialog>
-
-		<!--拒绝界面-->
-		<el-dialog title="审核" :close-on-click-modal="false"
-				   :visible.sync="rejectFormVisible">
-			<el-form :model="rejectForm" label-width="120px" :rules="rejectFormPayRules" ref="rejectForm">
-				<el-form-item label="回访内容" prop="applyRejectResion">
-					<el-input type="textarea" v-model="rejectForm.applyRejectResion" auto-complete="off" />
-				</el-form-item>
-			</el-form>
-			<div slot="footer" class="dialog-footer">
-				<el-button @click.native="rejectFormVisible = false">取消</el-button>
-				<el-button type="primary" @click.native="rejectSubmit" :loading="rejectLoading">提交</el-button>
 			</div>
 		</el-dialog>
 	</section>
@@ -126,20 +117,6 @@
     export default {
         data() {
             return {
-                /**
-				 * 拒绝弹窗相关
-				 */
-                rejectFormVisible:false,
-                rejectLoading:false,
-                rejectForm:{
-                    productSaleApplyId: '',
-                    applyRejectResion:'',
-                },
-                rejectFormPayRules: {
-                    applyRejectResion: [
-                        { required: true, message: '请输入拒绝原因', trigger: 'blur' }
-                    ],
-                },
                 /**
                  * 过滤条件
                  */
@@ -159,7 +136,7 @@
                 addFormVisible: false,//新增界面是否显示
                 //新增界面数据
                 addForm: {
-                    productSaleApplyId: '',
+                    id: '',
                     cusName:'',
                     cusTelphone:'',
                     file:'',
@@ -191,42 +168,6 @@
             this.serch();
         },
         methods: {
-            //电话审核-拒绝
-            rejectSubmit(){
-                let vm = this
-                vm.$refs.rejectForm.validate((valid) => {
-                    if (valid) {
-                        vm.$confirm('确认提交吗？', '提示', {}).then(() => {
-                            //NProgress.start();
-                            let params = Object.assign({}, vm.rejectForm);
-                            vm.rejectLoading = true;
-                            post(instanceUrl.telephoneAuditReject,params).then((res) => {
-                                vm.rejectLoading = false;
-                                //NProgress.done();
-                                vm.$refs['rejectForm'].resetFields();
-                                if("success" === res.status){
-                                    //关闭新增窗口
-                                    vm.rejectFormVisible = false;
-                                    vm.addFormVisible = false;
-                                    vm.$message({
-                                        message: '拒绝提交成功',
-                                        type: 'success'
-                                    });
-                                    vm.serch();
-                                    return
-                                }
-                                vm.$message({
-                                    message: res.msg,
-                                    type: 'error'
-                                });
-                            }).catch((error) => {
-                                vm.rejectLoading = false
-                                console.log("报错了")
-                            })
-                        });
-                    }
-                });
-			},
             //新增
             addSubmit: function () {
                 let vm = this
@@ -295,7 +236,7 @@
                     // applyStatus: "first_trial"
                 }
                 vm.listLoading = true;
-                post(instanceUrl.getTelephoneAudit,params).then((res) => {
+                post(instanceUrl.getExpressDelivery,params).then((res) => {
                     vm.listLoading = false;
                     if("success" == res.status){
                         vm.total = res.data.length;
@@ -313,44 +254,62 @@
                 })
             },
             /**
-			 * 电话催单
+             * 通知客户进行签收公司快递
+             * @param index
+             * @param row
+             */
+            reminderCustomer(index, row) {
+                let vm = this
+                vm.$confirm('客户姓名：'+row.cusName+',电话：'+row.cusTelphone+'，请拨打电话进行通知签收公司快递！', '提示', {}).then(() => {
+
+                });
+            },
+            /**
+			 * 通知客户快递信息被驳回需电话提醒快递信息
              * @param index
              * @param row
              */
             reminder(index, row) {
                 let vm = this
-                vm.$confirm('客户姓名：'+row.cusName+',电话：'+row.cusTelphone+'，请拨打电话进行催单！', '提示', {}).then(() => {
+                vm.$confirm('客户姓名：'+row.cusName+',电话：'+row.cusTelphone+'，请拨打电话进行通知客户快递信息被驳回！', '提示', {}).then(() => {
 
                 });
             },
-			//电话审核拒绝弹窗
-            openRejectSubmit(){
+			//签收快递
+            signAndExpress(index, row){
                 let vm = this
-                vm.rejectFormVisible = true;
-                vm.rejectForm = Object.assign({}, {
-                    productSaleApplyId: vm.addForm.productSaleApplyId,
-                    applyRejectResion:'',
+                vm.$confirm('客户姓名：'+row.cusName+',电话：'+row.cusTelphone+'，请确认该快递已经签收！', '提示', {}).then(() => {
+                    let params = {
+                        productSaleApplyId:row.id,
+						//签收的产品列表
+                        partsList:''
+					}
+                    vm.listLoading = true;
+                    post(instanceUrl.signExpress,params).then((res) => {
+                        vm.listLoading = false;
+                        if("success" === res.status){
+                            //关闭修改窗
+                            vm.editFormVisible = false;
+                            vm.$message({
+                                message: '签收客户快递成功',
+                                type: 'success'
+                            });
+                            vm.serch();
+                        }else{
+                            vm.$message({
+                                message: '修改异常',
+                                type: 'error'
+                            });
+                        }
+                    }).catch((error) => {
+                        vm.listLoading = false;
+                        vm.$message({
+                            message: '网络异常',
+                            type: 'error'
+                        });
+                    })
                 });
 			},
-            //电话审核
-            handleEdit: function (index, row) {
-                let vm = this
-                vm.addFormVisible = true;
-                vm.addForm = Object.assign({}, {
-                    productSaleApplyId: row.id,
-                    cusName:row.cusName,
-                    cusTelphone:row.cusTelphone,
-                    file:row.file,
-                    series:row.series,
-                    proName:row.proName,
-                    proModel:row.proModel,
-                    applyDesc:'',
-                    payGoods: '',
-                    isPay: "N",
-                    isMailingAccessories: "N",
-                });
-
-            },
         }
     }
 
