@@ -3,12 +3,12 @@
 		<!--工具条-->
 		<el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
 			<el-form :inline="true" :model="filters">
-				<el-form-item label="昵称：">
-					<el-input v-model="filters.nickName" placeholder="昵称"></el-input>
-				</el-form-item>
-				<el-form-item label="账号：">
-					<el-input v-model="filters.account" placeholder="账号"></el-input>
-				</el-form-item>
+				<!--<el-form-item label="昵称：">-->
+					<!--<el-input v-model="filters.nickName" placeholder="昵称"></el-input>-->
+				<!--</el-form-item>-->
+				<!--<el-form-item label="账号：">-->
+					<!--<el-input v-model="filters.account" placeholder="账号"></el-input>-->
+				<!--</el-form-item>-->
 				<el-form-item>
 					<el-button type="primary" v-on:click="serch">查询</el-button>
 				</el-form-item>
