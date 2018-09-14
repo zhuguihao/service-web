@@ -42,6 +42,7 @@
 				<template slot-scope="scope">
 					<el-button size="small" v-if="'first_trial'===scope.row.applyStatus" @click="handleEdit(scope.$index, scope.row)">审核</el-button>
 					<el-button size="small" v-if="'the_trial_pass'===scope.row.applyStatus" @click="reminder(scope.$index, scope.row)">催单</el-button>
+					<el-button size="small" v-if="'the_trial_reject'===scope.row.applyStatus" @click="rejectReminder(scope.$index, scope.row)">通知</el-button>
 				</template>
 			</el-table-column>
 		</el-table>
@@ -320,6 +321,17 @@
             reminder(index, row) {
                 let vm = this
                 vm.$confirm('客户姓名：'+row.cusName+',电话：'+row.cusTelphone+'，请拨打电话进行催单！', '提示', {}).then(() => {
+
+                });
+            },
+            /**
+             * 拒绝售后申请通知
+             * @param index
+             * @param row
+             */
+            rejectReminder(index, row) {
+                let vm = this
+                vm.$confirm('客户姓名：'+row.cusName+',电话：'+row.cusTelphone+'，请拨打电话进行通知！', '提示', {}).then(() => {
 
                 });
             },
